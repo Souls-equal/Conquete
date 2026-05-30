@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Conquête</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:wght@300;400&display=swap');
+:root{--gold:#c9a84c;--gold-l:#e8c96a;--bg:#0d1b0e;--panel:rgba(8,16,8,0.96);--border:rgba(201,168,76,0.35);--text:#e8dfc8;--muted:#9a8e72;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Crimson Pro',serif;user-select:none;}
+.screen{display:none;width:100%;height:100%;}
+.screen.active{display:flex;}
+
+/* MENU */
+#screen-menu{flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#1a3a1a,#0d1b0e);}
+.menu-title{font-family:'Cinzel',serif;font-size:clamp(2rem,5vw,3.8rem);color:var(--gold);letter-spacing:.15em;text-align:center;text-shadow:0 0 40px rgba(201,168,76,.25);margin-bottom:.15em;}
+.menu-sub{font-size:.85rem;color:var(--muted);text-align:center;letter-spacing:.3em;text-transform:uppercase;margin-bottom:2rem;}
+.menu-panel{background:var(--panel);border:1px solid var(--border);padding:1.6rem 2rem;width:min(460px,92vw);max-height:82vh;overflow-y:auto;}
+.players-list{display:flex;flex-direction:column;gap:1rem;margin-bottom:1.2rem;}
+.p-entry{background:rgba(201,168,76,.04);border:1px solid var(--border);padding:.85rem 1rem;position:relative;}
+.p-title{font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);letter-spacing:.2em;margin-bottom:.65rem;}
+.cdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.frow{display:flex;flex-direction:column;gap:.2rem;margin-bottom:.55rem;}
+.frow:last-child{margin-bottom:0;}
+.frow label{font-size:.72rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+.frow input{background:rgba(0,0,0,.45);border:1px solid var(--border);color:var(--text);font-family:'Crimson Pro',serif;font-size:.95rem;padding:.32rem .6rem;outline:none;width:100%;transition:border-color .2s;}
+.frow input:focus{border-color:var(--gold);}
+.prow{display:flex;gap:.4rem;align-items:flex-end;}
+.prow input{flex:1;}
+.btn-gen{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Crimson Pro',serif;font-size:.7rem;padding:.32rem .5rem;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-gen:hover{border-color:var(--gold);color:var(--gold);}
+.btn-rm{position:absolute;top:.5rem;right:.7rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;transition:color .2s;}
+.btn-rm:hover{color:#c0392b;}
+.menu-actions{display:flex;gap:.6rem;}
+.btn-add{flex:0 0 auto;background:none;border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:.8rem;padding:.6rem 1rem;cursor:pointer;letter-spacing:.1em;transition:all .2s;}
+.btn-add:hover{background:rgba(201,168,76,.08);border-color:var(--gold-l);}
+.btn-start{flex:1;background:rgba(201,168,76,.12);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.9rem;padding:.6rem 1.2rem;cursor:pointer;letter-spacing:.15em;transition:all .2s;}
+.btn-start:hover{background:rgba(201,168,76,.22);}
+.menu-err{color:#c0392b;font-size:.8rem;text-align:center;margin-top:.6rem;min-height:1.1em;}
+
+/* LOGIN */
+#screen-login{flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%,#1a1a0e,#0d1b0e);}
+.login-box{background:var(--panel);border:1px solid var(--border);padding:2.2rem;width:min(340px,92vw);text-align:center;}
+.lt-label{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem;}
+.lt-name{font-family:'Cinzel',serif;font-size:1.65rem;color:var(--gold);margin-bottom:1.4rem;}
+.lt-name .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:middle;}
+.login-box .frow{text-align:left;}
+.btn-ok{width:100%;margin-top:1rem;background:rgba(201,168,76,.12);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.85rem;padding:.72rem;cursor:pointer;letter-spacing:.15em;transition:all .2s;}
+.btn-ok:hover{background:rgba(201,168,76,.22);}
+.login-err{color:#c0392b;font-size:.8rem;margin-top:.5rem;min-height:1em;}
+
+/* VICTOIRE */
+#screen-win{flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#2a1f00,#0d1b0e);}
+.win-title{font-family:'Cinzel',serif;font-size:clamp(1.5rem,5vw,3.5rem);color:var(--gold);letter-spacing:.2em;text-align:center;margin-bottom:.5rem;text-shadow:0 0 60px rgba(201,168,76,.4);}
+.win-sub{font-size:1.1rem;color:var(--muted);margin-bottom:2rem;text-align:center;}
+.btn-restart{background:rgba(201,168,76,.12);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.9rem;padding:.8rem 2rem;cursor:pointer;letter-spacing:.15em;transition:all .2s;}
+.btn-restart:hover{background:rgba(201,168,76,.25);}
+
+/* GAME */
+#screen-game{flex-direction:column;height:100%;}
+.hud{display:flex;align-items:center;gap:.8rem;padding:.4rem .9rem;background:rgba(0,0,0,.85);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.hud-player{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold);display:flex;align-items:center;gap:5px;}
+.hud-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.hud-money{font-family:'Cinzel',serif;font-size:.8rem;color:var(--muted);}
+.hud-money span{color:var(--gold-l);}
+.hud-income{font-size:.72rem;color:#2ecc71;}
+.hud-scouts{font-size:.72rem;color:#3498db;letter-spacing:.04em;}
+.hud-turn{font-size:.72rem;color:var(--muted);letter-spacing:.08em;margin-left:auto;}
+.btn-et{background:rgba(201,168,76,.1);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.7rem;padding:.3rem .8rem;cursor:pointer;letter-spacing:.1em;transition:all .2s;}
+.btn-et:hover{background:rgba(201,168,76,.22);}
+.btn-center{background:none;border:1px solid var(--border);color:var(--muted);font-size:.85rem;padding:.28rem .55rem;cursor:pointer;transition:all .2s;line-height:1;}
+.btn-center:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Mode exploration — curseur différent */
+#map-canvas.explore-mode{cursor:crosshair;}
+
+.map-area{flex:1;position:relative;min-height:0;overflow:hidden;}
+#map-canvas{display:block;width:100%;height:100%;cursor:grab;image-rendering:pixelated;}
+#map-canvas.dragging{cursor:grabbing;}
+
+/* Panel action */
+#action-panel{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);padding:.5rem .85rem;display:none;gap:.45rem;z-index:20;flex-wrap:wrap;justify-content:center;font-size:.78rem;pointer-events:all;max-width:92vw;}
+#action-panel.vis{display:flex;}
+.a-info{color:var(--muted);align-self:center;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
+.btn-act{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Crimson Pro',serif;font-size:.78rem;padding:.23rem .65rem;cursor:pointer;transition:all .2s;}
+.btn-act:hover:not(:disabled){border-color:var(--gold);color:var(--gold);}
+.btn-act.primary{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08);}
+.btn-act.blue{border-color:#3498db;color:#3498db;background:rgba(52,152,219,.08);}
+.btn-act.blue:hover:not(:disabled){background:rgba(52,152,219,.18);}
+.btn-act.red{border-color:#e74c3c;color:#e74c3c;background:rgba(231,76,60,.08);}
+.btn-act.red:hover:not(:disabled){background:rgba(231,76,60,.2);}
+.btn-act:disabled{opacity:.3;cursor:not-allowed;}
+
+/* Bandeau mode exploration */
+#explore-banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(52,152,219,.18);border:1px solid #3498db;padding:.4rem 1rem;font-family:'Cinzel',serif;font-size:.72rem;color:#7ec8e3;letter-spacing:.1em;z-index:25;display:none;pointer-events:none;white-space:nowrap;}
+#explore-banner.vis{display:block;}
+
+/* Modal construction */
+#build-modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--border);padding:1.3rem 1.7rem;z-index:50;display:none;flex-direction:column;gap:.8rem;min-width:260px;max-width:94vw;}
+#build-modal.vis{display:flex;}
+.bm-title{font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold);letter-spacing:.15em;}
+.bm-opt{display:flex;align-items:center;gap:.75rem;padding:.45rem .55rem;border:1px solid var(--border);cursor:pointer;transition:all .2s;}
+.bm-opt:hover:not(.disabled){border-color:var(--gold);background:rgba(201,168,76,.07);}
+.bm-opt.disabled{opacity:.35;cursor:not-allowed;}
+.bm-icon{font-size:1.25rem;width:1.5rem;text-align:center;}
+.bm-name{font-family:'Cinzel',serif;font-size:.76rem;color:var(--gold);}
+.bm-desc{font-size:.7rem;color:var(--muted);}
+.bm-cost{font-size:.72rem;color:#e8c96a;margin-left:auto;white-space:nowrap;}
+.bm-close{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Crimson Pro',serif;font-size:.73rem;padding:.28rem .75rem;cursor:pointer;align-self:flex-end;transition:all .2s;}
+.bm-close:hover{color:var(--text);}
+#combat-modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--border);padding:1.4rem 1.8rem;z-index:55;display:none;flex-direction:column;gap:.7rem;min-width:280px;max-width:94vw;}
+#combat-modal.vis{display:flex;}
+.cm-line{font-size:.82rem;color:var(--text);line-height:1.5;}
+.cm-win{color:#2ecc71;font-family:'Cinzel',serif;font-size:.95rem;}
+.cm-lose{color:#e74c3c;font-family:'Cinzel',serif;font-size:.95rem;}
+
+/* Popup générique */
+.popup{position:absolute;top:50px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);padding:.65rem 1.1rem;z-index:60;display:none;text-align:center;font-size:.82rem;pointer-events:none;white-space:nowrap;}
+.popup.vis{display:block;}
+
+#zoom-ind{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.65);border:1px solid var(--border);font-family:'Cinzel',serif;font-size:.6rem;color:var(--muted);padding:.16rem .42rem;pointer-events:none;z-index:30;}
+
+.legend{display:flex;gap:.55rem;padding:.32rem .9rem;background:rgba(0,0,0,.55);border-top:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:.67rem;color:var(--muted);}
+.leg-sw{width:10px;height:10px;border:1px solid rgba(255,255,255,.12);}
+</style>
+</head>
+<body>
+
+<!-- MENU -->
+<div id="screen-menu" class="screen active">
+  <h1 class="menu-title">CONQUÊTE</h1>
+  <p class="menu-sub">Stratégie au tour par tour</p>
+  <div class="menu-panel">
+    <div class="players-list" id="players-list"></div>
+    <div class="menu-actions">
+      <button class="btn-add" onclick="addPlayer()">+ Joueur</button>
+      <button class="btn-start" onclick="startGame()">Commencer</button>
+    </div>
+    <p class="menu-err" id="menu-err"></p>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen">
+  <div class="login-box">
+    <p class="lt-label">Tour suivant</p>
+    <h2 class="lt-name" id="lt-name"></h2>
+    <div class="frow">
+      <label>Mot de passe</label>
+      <input type="password" id="lt-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-ok" onclick="doLogin()">Entrer</button>
+    <p class="login-err" id="login-err"></p>
+  </div>
+</div>
+
+<!-- VICTOIRE -->
+<div id="screen-win" class="screen">
+  <p class="win-title">⚔️ VICTOIRE</p>
+  <p class="win-sub" id="win-msg"></p>
+  <button class="btn-restart" onclick="restartGame()">Rejouer</button>
+</div>
+
+<!-- JEU -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <div class="hud-player"><div class="hud-dot" id="hud-dot"></div><span id="hud-name">—</span></div>
+    <div class="hud-money">Trésor : <span id="hud-money">500</span> $</div>
+    <div class="hud-income" id="hud-income"></div>
+    <div class="hud-scouts" id="hud-scouts"></div>
+    <div class="hud-turn" id="hud-turn">Tour 1</div>
+    <button class="btn-center" onclick="centerOnSpawn()" title="Recentrer sur mon camp">🏠</button>
+    <button class="btn-et" onclick="endTurn()">Fin de tour →</button>
+  </div>
+  <div class="map-area">
+    <canvas id="map-canvas"></canvas>
+
+    <!-- Bandeau mode ordre -->
+    <div id="explore-banner" id="order-banner">⬤ Cliquez une case cible sur la carte — <span id="order-banner-hint"></span> — Échap pour annuler</div>
+
+    <!-- Panel action case -->
+    <div id="action-panel">
+      <span class="a-info" id="a-info">—</span>
+      <button class="btn-act blue" id="btn-send-scout" onclick="enterOrderMode('explore')">🧭 Explorer →</button>
+      <button class="btn-act red" id="btn-attack" onclick="enterOrderMode('attack')">⚔️ Attaquer →</button>
+      <button class="btn-act" id="btn-build" onclick="openBuildModal()">Construire</button>
+      <button class="btn-act" onclick="clearSel()">✕</button>
+    </div>
+
+    <!-- Modal construction -->
+    <div id="build-modal">
+      <div class="bm-title">⚒ Construire</div>
+      <div id="bm-options"></div>
+      <button class="bm-close" onclick="closeBuildModal()">Annuler</button>
+    </div>
+
+    <!-- Popups -->
+    <div class="popup" id="income-popup"></div>
+    <div class="popup" id="scout-popup"></div>
+
+    <!-- Modal résultat de combat -->
+    <div id="combat-modal">
+      <div class="bm-title" id="cm-title">⚔️ Résultat du combat</div>
+      <div id="cm-body"></div>
+      <button class="bm-close" onclick="document.getElementById('combat-modal').classList.remove('vis')">Fermer</button>
+    </div>
+
+    <div id="zoom-ind">100%</div>
+  </div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-sw" style="background:#1a3a5c"></div>Mer</div>
+    <div class="leg-item"><div class="leg-sw" style="background:#4a7c3f"></div>Plaine</div>
+    <div class="leg-item"><div class="leg-sw" style="background:#1e4d22"></div>Forêt</div>
+    <div class="leg-item"><div class="leg-sw" style="background:rgba(255,255,255,.18);border:2px solid #fff"></div>Ta friche</div>
+    <div class="leg-item"><div class="leg-sw" style="background:rgba(52,152,219,.25);border:1px solid #3498db"></div>Objectif éclaireur</div>
+    <div class="leg-item"><div class="leg-sw" style="background:#080e08;border:1px solid #1a2e1a"></div>Brouillard</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  CONSTANTES
+// ══════════════════════════════════════════════════
+const WORDS_A=['Poulet','Dragon','Fer','Acier','Vent','Pierre','Ombre','Flamme','Glace','Loup','Aigle','Chat'];
+const WORDS_B=['Jaune','Rouge','Bleu','Musclé','Fort','Calme','Rapide','Sage','Noir','Brave','Vif','Agile','Malin','Turbo','Froid'];
+const P_COLORS=['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e91e8c','#ffffff'];
+
+const MW=36, MH=28, SEA=4, FMARG=7, TS=32, SPAWN_FRICHES=5;
+const ZMIN=0.35, ZMAX=3.5;
+
+// Unités militaires
+const UNITS={
+  soldat:{name:'Soldat',    icon:'⚔️', power:50,  explore:1, cost:100},
+  archer:{name:'Archer',   icon:'🏹', power:50,  explore:1, cost:100},
+  mage:  {name:'Mage',     icon:'🔮', power:100, explore:1, cost:250},
+  catapulte:{name:'Catapulte',icon:'💣',power:250,explore:0, cost:500},
+};
+
+// Casernes (= bâtiment militaire, produit 1 unité)
+const BARRACKS={
+  caserne_soldat:  {name:'Caserne Soldat',   icon:'🏠', unit:'soldat',   cost:100, category:'military'},
+  caserne_archer:  {name:'Caserne Archer',   icon:'🏚️', unit:'archer',   cost:100, category:'military'},
+  caserne_mage:    {name:'Tour de Mage',     icon:'🗼', unit:'mage',     cost:250, category:'military'},
+  caserne_catapulte:{name:'Forge Catapulte', icon:'⚙️', unit:'catapulte',cost:500, category:'military'},
+};
+
+// Bâtiments économiques
+const ECOBUILDINGS={
+  ble:      {name:'Champ de blé',       icon:'🌾', cost:100, income:50,  desc:'+50$/tour',   check:(x,y)=>true},
+  mine:     {name:"Mine d'or",          icon:'⛏️', cost:300, income:100, desc:'+100$/tour',  check:(x,y)=>true},
+  bucheron: {name:'Cabane de bûcheron', icon:'🪵', cost:500, income:250, desc:'+250$/tour — à 2 cases d\'une forêt', check:(x,y)=>isNearForest(x,y,2)},
+};
+
+// ══════════════════════════════════════════════════
+//  ÉTAT GLOBAL
+// ══════════════════════════════════════════════════
+let players=[];
+let curP=0, turnN=1;
+let map=[];
+let selTile=null;
+let visibleTiles=new Set();
+let buildTarget=null;
+
+// Sélection multi-troupes
+let selectedUnits=new Set(); // Set de "x,y" des casernes sélectionnées
+
+// Mode ordre (explore ou attaque) — en attente d'un clic cible
+let orderMode=null; // null | 'explore' | 'attack'
+
+let cam={ox:0, oy:0, zoom:1.0};
+
+// ══════════════════════════════════════════════════
+//  MENU
+// ══════════════════════════════════════════════════
+function addPlayer(){
+  if(players.length>=8)return;
+  players.push({name:'',password:'',color:P_COLORS[players.length],money:500});
+  renderMenu();
+}
+function removePlayer(i){
+  if(players.length<=1)return;
+  players.splice(i,1);
+  players.forEach((p,j)=>p.color=P_COLORS[j]);
+  renderMenu();
+}
+function renderMenu(){
+  const el=document.getElementById('players-list');
+  el.innerHTML='';
+  players.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='p-entry';
+    d.innerHTML=`
+      <div class="p-title"><span class="cdot" style="background:${p.color}"></span>Joueur ${i+1}</div>
+      ${players.length>1?`<button class="btn-rm" onclick="removePlayer(${i})">✕</button>`:''}
+      <div class="frow"><label>Pseudo</label>
+        <input type="text" value="${p.name}" placeholder="Nom" oninput="players[${i}].name=this.value"></div>
+      <div class="frow"><label>Mot de passe</label>
+        <div class="prow">
+          <input type="password" value="${p.password}" placeholder="••••" oninput="players[${i}].password=this.value">
+          <button class="btn-gen" onclick="genPwd(${i})">🎲 Générer</button>
+        </div></div>`;
+    el.appendChild(d);
+  });
+}
+function genPwd(i){
+  const pwd=WORDS_A[Math.floor(Math.random()*WORDS_A.length)]+WORDS_B[Math.floor(Math.random()*WORDS_B.length)];
+  players[i].password=pwd;
+  alert('Mot de passe : '+pwd+'\n\nNote-le bien !');
+  renderMenu();
+}
+function startGame(){
+  const err=document.getElementById('menu-err');
+  if(players.length<2){err.textContent='Il faut au moins 2 joueurs.';return;}
+  for(const p of players){
+    if(!p.name.trim()){err.textContent='Chaque joueur doit avoir un pseudo.';return;}
+    if(!p.password){err.textContent='Chaque joueur doit avoir un mot de passe.';return;}
+    console.log(p.name+" Password: "+p.password)
+  }
+  err.textContent='';
+  buildMap();
+  assignSpawns();
+  showLogin();
+}
+function restartGame(){
+  players=[];curP=0;turnN=1;map=[];selTile=null;visibleTiles.clear();
+  orderMode=null; selectedUnits.clear();
+  addPlayer();addPlayer();
+  showScreen('screen-menu');
+}
+
+// ══════════════════════════════════════════════════
+//  MAP
+// ══════════════════════════════════════════════════
+function buildMap(){
+  map=[];
+  for(let x=0;x<MW;x++){
+    map[x]=[];
+    for(let y=0;y<MH;y++)
+      map[x][y]={type:ttype(x,y), owner:null, building:null, isSpawn:false,
+                 unit:null,
+                 exploreTarget:null,
+                 attackTarget:null,  // {tx,ty} cible d'attaque
+                 marchPos:null};     // {x,y} position actuelle du marcheur
+  }
+}
+function ttype(x,y){
+  if(x<SEA||x>=MW-SEA||y<SEA||y>=MH-SEA)return'mer';
+  if(x>=SEA+FMARG&&x<=MW-SEA-FMARG-1&&y>=SEA+FMARG&&y<=MH-SEA-FMARG-1)return'foret';
+  return'plaine';
+}
+function spawnZones(n){
+  const minDist = 13; // distance minimale entre spawns
+  const margin = SEA + 2;
+  const zones = [];
+  let attempts = 0;
+
+  while(zones.length < n && attempts < 2000){
+    attempts++;
+    const x = margin + Math.floor(Math.random() * (MW - margin*2));
+    const y = margin + Math.floor(Math.random() * (MH - margin*2));
+    if(map[x][y].type === 'mer') continue;
+
+    const tooClose = zones.some(z => Math.abs(z.x-x) + Math.abs(z.y-y) < minDist);
+    if(!tooClose) zones.push({x, y});
+  }
+
+  // Fallback si pas assez de place (très rare)
+  if(zones.length < n){
+    const cx=MW/2, cy=MH/2, rx=(MW/2-SEA-2)*0.55, ry=(MH/2-SEA-2)*0.55;
+    for(let i=zones.length; i<n; i++){
+      const a=(i/n)*Math.PI*2-Math.PI/2;
+      zones.push({x:Math.round(cx+Math.cos(a)*rx), y:Math.round(cy+Math.sin(a)*ry)});
+    }
+  }
+
+  return zones;
+}
+
+function assignSpawns(){
+  const zones=spawnZones(players.length);
+  players.forEach((p,i)=>{
+    let{x,y}=zones[i];
+    x=clamp(x,SEA+1,MW-SEA-2); y=clamp(y,SEA+1,MH-SEA-2);
+    if(map[x][y].type==='mer') x+=x<MW/2?1:-1;
+    if(map[x][y].type!=='plaine') map[x][y].type='plaine';
+    map[x][y].owner=i; map[x][y].isSpawn=true;
+    map[x][y].building='ble'; // Champ de blé gratuit sur le spawn
+    p.spawnX=x; p.spawnY=y;
+    const seen=new Set([`${x},${y}`]);
+    let queue=adjPlayable(x,y).filter(t=>map[t.x][t.y].type!=='mer');
+    shuffle(queue);
+    let n=0;
+    let barracksPlaced=false;
+    while(queue.length&&n<SPAWN_FRICHES){
+      const t=queue.shift(),k=`${t.x},${t.y}`;
+      if(seen.has(k)||map[t.x][t.y].owner!==null||map[t.x][t.y].type==='mer')continue;
+      map[t.x][t.y].owner=i; seen.add(k); n++;
+      // Première friche adjacente → caserne de soldat gratuite
+      if(!barracksPlaced){
+        map[t.x][t.y].building='caserne_soldat';
+        map[t.x][t.y].unit='soldat';
+        barracksPlaced=true;
+      }
+      adjPlayable(t.x,t.y).forEach(nb=>{if(!seen.has(`${nb.x},${nb.y}`))queue.push(nb);});
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  BROUILLARD
+// ══════════════════════════════════════════════════
+function calcVisible(pi){
+  visibleTiles.clear();
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    if(map[x][y].owner===pi){
+      visibleTiles.add(`${x},${y}`);
+      adj4(x,y).forEach(({x:nx,y:ny})=>visibleTiles.add(`${nx},${ny}`));
+    }
+  }
+  // Cases révélées par le 3×3 (vues mais pas possédées)
+  if(players[pi].revealed3x3){
+    players[pi].revealed3x3.forEach(k=>visibleTiles.add(k));
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  REVENUS
+// ══════════════════════════════════════════════════
+function collectIncome(pi){
+  let g=0;
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    const t=map[x][y];
+    if(t.owner===pi&&t.building){
+      const b=ECOBUILDINGS[t.building];
+      if(b){if(t.building==='bucheron'&&!isNearForest(x,y,2))continue; g+=b.income;}
+    }
+  }
+  return g;
+}
+function calcTotalIncome(pi){
+  let g=0;
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    const t=map[x][y];
+    if(t.owner===pi&&t.building){
+      const b=ECOBUILDINGS[t.building];
+      if(b){if(t.building==='bucheron'&&!isNearForest(x,y,2))continue; g+=b.income;}
+    }
+  }
+  return g;
+}
+
+// ══════════════════════════════════════════════════
+//  COMPTE ÉCLAIREURS DISPONIBLES (casernes non encore envoyées ce tour)
+// ══════════════════════════════════════════════════
+function getAvailableScouts(pi){
+  // Unités qui peuvent explorer et n'ont pas encore d'ordre ce tour
+  const scouts=[];
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    const t=map[x][y];
+    if(t.owner===pi && t.unit && UNITS[t.unit] && UNITS[t.unit].explore>0 && !t.exploreTarget){
+      scouts.push({x,y,unit:t.unit});
+    }
+  }
+  return scouts;
+}
+function countPendingOrders(pi){
+  let n=0;
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    if(map[x][y].owner===pi && map[x][y].exploreTarget) n++;
+  }
+  return n;
+}
+
+// ══════════════════════════════════════════════════
+//  EXPLORATION — ALGORITHME (exécuté en début de tour)
+// ══════════════════════════════════════════════════
+/*
+  Règles :
+  - Chaque éclaireur donne 1 "token" d'exploration
+  - Budget total = MAX_TILES_PER_TURN (7 cases) peu importe le nb de troupes
+  - Les cases révélées DOIVENT être contiguës au territoire existant (pas de trous)
+  - On trace un "couloir" connecté depuis la bordure vers la cible, puis on s'étale
+*/
+const MAX_TILES_PER_TURN = 7; // budget total de cases explorées par tour (toutes troupes confondues)
+
+function resolveExploration(pi){
+  // 1. Collecter les ordres (chaque troupe avec exploreTarget)
+  const orders=[];
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    const t=map[x][y];
+    if(t.owner===pi && t.exploreTarget){
+      orders.push({tx:t.exploreTarget.tx, ty:t.exploreTarget.ty});
+      t.exploreTarget=null;
+    }
+  }
+  if(!orders.length) return 0;
+
+  // 2. Budget total = MAX_TILES_PER_TURN (7), peu importe le nb de troupes
+  //    Plusieurs troupes vers la même cible = même budget, mais direction concentrée
+  const budget = MAX_TILES_PER_TURN;
+
+  // 3. Un seul pool de cases révélées, partagé entre tous les ordres
+  const revealed = resolveAllOrders(pi, orders, budget);
+
+  // 4. Appliquer + révélation 3×3 autour des cases ennemies/construites découvertes
+  let count=0;
+  revealed.forEach(({x,y})=>{
+    const t=map[x][y];
+    if(t.type==='mer') return;
+    if(t.owner===null){
+      t.owner=pi; count++;
+    } else if(t.owner!==pi){
+      if(!t.building){
+        // Friche ennemie : on la prend + révélation 3×3
+        t.owner=pi; count++;
+      }
+      // Révélation 3×3 autour (friche ou case construite ennemie)
+      reveal3x3(x, y, pi);
+    }
+  });
+  return count;
+}
+
+function reveal3x3(cx, cy, pi){
+  if(!players[pi].revealed3x3) players[pi].revealed3x3=new Set();
+  for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++){
+    const nx=cx+dx, ny=cy+dy;
+    if(nx>=0&&nx<MW&&ny>=0&&ny<MH&&map[nx][ny].type!=='mer')
+      players[pi].revealed3x3.add(`${nx},${ny}`);  // ← backtick non échappé
+  }
+}
+
+/*
+  resolveAllOrders :
+  Pour chaque ordre, on fait un BFS guidé DEPUIS LA BORDURE DU TERRITOIRE
+  vers la cible, en ne gardant que des cases ADJACENTES au territoire déjà possédé
+  (ou déjà révélées dans ce batch). Cela garantit la contiguïté.
+  Budget total partagé entre tous les ordres.
+*/
+function resolveAllOrders(pi, orders, budget){
+  // "Territoire courant" = cases déjà possédées + cases qu'on révèle au fur et à mesure
+  const owned = new Set();
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++)
+    if(map[x][y].owner===pi) owned.add(`${x},${y}`);
+
+  const revealed=[]; // cases à révéler dans l'ordre
+  let remaining=budget;
+
+  // Pour chaque ordre, on essaie de progresser vers sa cible
+  // en prenant des cases connectées au territoire courant
+  // Regrouper les ordres par cible unique pour éviter la redondance
+  const uniqueTargets=[...new Map(orders.map(o=>[`${o.tx},${o.ty}`,o])).values()];
+
+  for(const order of uniqueTargets){
+    if(remaining<=0) break;
+    const steps = guidedExpand(pi, owned, order.tx, order.ty, remaining);
+    steps.forEach(({x,y})=>{
+      if(remaining<=0) return;
+      revealed.push({x,y});
+      owned.add(`${x},${y}`);
+      remaining--;
+    });
+  }
+
+  return revealed;
+}
+
+/*
+  guidedExpand :
+  BFS depuis la frontière du territoire (owned) vers (tx,ty),
+  en ne sélectionnant que des cases ADJACENTES À owned.
+  Retourne au plus `maxTiles` cases dans l'ordre de progression.
+*/
+function guidedExpand(pi, owned, tx, ty, maxTiles){
+  const result=[];
+  // File de priorité : cases candidates = non-owned, non-mer, adjacentes à owned
+  // On les trie par distance à la cible (greedy)
+  const seen=new Set(owned);
+
+  // Construire la frontière initiale
+  let frontier=[];
+  owned.forEach(k=>{
+    const [x,y]=k.split(',').map(Number);
+    adj4(x,y).forEach(({x:nx,y:ny})=>{
+      const nk=`${nx},${ny}`;
+      if(!seen.has(nk) && map[nx][ny].type!=='mer'){
+        seen.add(nk);
+        frontier.push({x:nx,y:ny,d:dist(nx,ny,tx,ty)});
+      }
+    });
+  });
+
+  while(frontier.length && result.length<maxTiles){
+    // Trier par distance à la cible
+    frontier.sort((a,b)=>a.d-b.d);
+    const best=frontier.shift();
+
+    result.push({x:best.x,y:best.y});
+    owned.add(`${best.x},${best.y}`); // maintenant possédé (pour ce calcul)
+
+    // Ajouter ses voisins à la frontière
+    adj4(best.x,best.y).forEach(({x:nx,y:ny})=>{
+      const nk=`${nx},${ny}`;
+      if(!seen.has(nk) && map[nx][ny].type!=='mer'){
+        seen.add(nk);
+        frontier.push({x:nx,y:ny,d:dist(nx,ny,tx,ty)});
+      }
+    });
+  }
+
+  return result;
+}
+
+function dist(ax,ay,bx,by){return Math.abs(ax-bx)+Math.abs(ay-by);}
+
+
+// ══════════════════════════════════════════════════
+//  SYSTÈME DE COMBAT
+// ══════════════════════════════════════════════════
+/*
+  Les troupes envoyées attaquer avancent d'1 case par tour vers la cible.
+  Quand elles atteignent une case ennemie → combat résolu.
+  Chaque caserne avec unité a: attackTarget:{tx,ty}, marchPos:{x,y} (position actuelle du marcheur)
+*/
+
+// Table pierre-feuille-ciseaux
+const TYPE_ADV = {
+  soldat:   {fort:'archer',   faible:'mage'},
+  archer:   {fort:'mage',     faible:'soldat'},
+  mage:     {fort:'soldat',   faible:'archer'},
+  catapulte:{fort:null,       faible:null}, // spécial bâtiments
+};
+
+// Bonus terrain défensif
+const TERRAIN_DEF = {plaine:1.0, foret:1.20, mer:1.0};
+const BUILDING_DEF = 1.30;
+
+function resolveAttacks(pi){
+  const logs=[];
+
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    const t=map[x][y];
+    if(t.owner!==pi || !t.attackTarget || !t.unit) continue;
+
+    const tx=t.attackTarget.tx, ty=t.attackTarget.ty;
+    const pos=t.marchPos || {x,y};
+
+    const nextStep=getNextStep(pos.x, pos.y, tx, ty);
+    if(!nextStep){
+      t.attackTarget=null; t.marchPos=null; continue;
+    }
+
+    const nx=nextStep.x, ny=nextStep.y;
+    const dest=map[nx][ny];
+
+    if(!players[pi].revealed3x3) players[pi].revealed3x3=new Set();
+    for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++){
+      const rx=nx+dx, ry=ny+dy;
+      if(rx>=0&&rx<MW&&ry>=0&&ry<MH) players[pi].revealed3x3.add(rx+','+ry);
+    }
+
+    if(dest.owner===pi || dest.owner===null){
+      t.marchPos={x:nx, y:ny};
+      if(nx===tx && ny===ty){
+        t.attackTarget=null; t.marchPos=null;
+        logs.push('Troupes arrivées en ('+tx+','+ty+') sans combat.');
+      }
+    } else {
+      const result=resolveCombat(pi, t.unit, nx, ny);
+      logs.push(result.log);
+      if(result.win){
+        dest.owner=pi;
+        logs.push(dest.building ? '🏗️ Bâtiment capturé en ('+nx+','+ny+') !' : '✅ Case ('+nx+','+ny+') conquise !');
+        checkElimination(result.defenderPi);
+      }
+      // Toujours nettoyer après un combat, victoire ou défaite
+      t.attackTarget=null; t.marchPos=null;
+    }
+  }
+
+  return logs;
+}
+
+function getNextStep(sx, sy, tx, ty){
+  if(sx===tx && sy===ty) return null;
+  // BFS minimal 1 step
+  const visited=new Map([[sx+','+sy, null]]);
+  const queue=[{x:sx,y:sy}];
+  while(queue.length){
+    const cur=queue.shift();
+    if(cur.x===tx && cur.y===ty){
+      // Remonter le chemin pour trouver le 1er pas
+      let k=tx+','+ty;
+      let prev=visited.get(k);
+      if(prev===null) return {x:tx,y:ty};
+      while(true){
+        const pp=visited.get(prev);
+        if(pp===null || pp===sx+','+sy) return {x:parseInt(k.split(',')[0]), y:parseInt(k.split(',')[1])};
+        k=prev; prev=pp;
+      }
+    }
+    adj4(cur.x,cur.y).forEach(({x:nx,y:ny})=>{
+      const nk=nx+','+ny;
+      if(!visited.has(nk) && map[nx][ny].type!=='mer'){
+        visited.set(nk, cur.x+','+cur.y);
+        queue.push({x:nx,y:ny});
+      }
+    });
+  }
+  return null;
+}
+
+function resolveCombat(attackerPi, attackerUnit, dx, dy){
+  const defTile=map[dx][dy];
+  const defenderPi=defTile.owner;
+  const defUnit=defTile.unit;
+
+  const au=UNITS[attackerUnit];
+
+  // Puissance attaquant
+  let atkPow=au.power;
+
+  // Bonus type vs défenseur
+  if(defUnit && UNITS[defUnit]){
+    const adv=TYPE_ADV[attackerUnit];
+    if(adv && adv.fort===defUnit) atkPow*=1.25;
+    else if(adv && adv.faible===defUnit) atkPow*=0.75;
+  }
+  // Catapulte : bonus contre bâtiments
+  if(attackerUnit==='catapulte' && defTile.building) atkPow*=2.5;
+
+  // Puissance défenseur
+  let defPow=0;
+  if(defUnit && UNITS[defUnit]){
+    defPow=UNITS[defUnit].power;
+    // Bonus type inverse
+    const dadv=TYPE_ADV[defUnit];
+    if(dadv && dadv.fort===attackerUnit) defPow*=1.25;
+    else if(dadv && dadv.faible===attackerUnit) defPow*=0.75;
+  } else {
+    // Case sans unité : défense de base du terrain
+    defPow=30;
+  }
+
+  // Bonus terrain
+  const terrainMult=TERRAIN_DEF[defTile.type]||1.0;
+  if(defTile.building) defPow*=BUILDING_DEF;
+  defPow*=terrainMult;
+
+  // RNG ±10%
+  atkPow*=(0.9+Math.random()*0.2);
+  defPow*=(0.9+Math.random()*0.2);
+
+  const win=atkPow>defPow;
+  const ratio=win ? defPow/atkPow : atkPow/defPow;
+  const winnerLoss=Math.round((0.30+ratio*0.50)*100);
+
+  let log='';
+  if(win){
+    log='⚔️ '+players[attackerPi].name+' attaque ('+dx+','+dy+') : VICTOIRE ! '
+       +'(ATK '+Math.round(atkPow)+' vs DEF '+Math.round(defPow)+')'
+       +' — pertes attaquant '+winnerLoss+'%';
+    // Éliminer l'unité défenderesse
+    if(defTile.unit) defTile.unit=null;
+  } else {
+    log='⚔️ '+players[attackerPi].name+' attaque ('+dx+','+dy+') : DÉFAITE. '
+       +'(ATK '+Math.round(atkPow)+' vs DEF '+Math.round(defPow)+')';
+  }
+
+  return {win, log, defenderPi, winnerLoss};
+}
+
+function checkElimination(pi){
+  if(pi===null||pi===undefined) return;
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++) if(map[x][y].owner===pi) return;
+  // Plus aucune case → éliminé
+  showPopup('scout-popup', players[pi].name+' a été éliminé !', 3000);
+}
+
+function getAvailableAttackers(pi){
+  const list=[];
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    const t=map[x][y];
+    if(t.owner===pi && t.unit && !t.attackTarget && !t.exploreTarget)
+      list.push({x,y,unit:t.unit});
+  }
+  return list;
+}
+function countPendingAttacks(pi){
+  let n=0;
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++)
+    if(map[x][y].owner===pi && map[x][y].attackTarget) n++;
+  return n;
+}
+
+// ══════════════════════════════════════════════════
+//  VICTOIRE
+// ══════════════════════════════════════════════════
+function checkVictory(){
+  const alive=players.filter((_,i)=>{
+    for(let x=0;x<MW;x++) for(let y=0;y<MH;y++) if(map[x][y].owner===i) return true;
+    return false;
+  });
+  if(alive.length===1){
+    document.getElementById('win-msg').innerHTML=
+      `<span style="color:${alive[0].color}">${alive[0].name}</span> a conquis le monde !`;
+    showScreen('screen-win');
+    return true;
+  }
+  return false;
+}
+
+// ══════════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════════
+function showLogin(){
+  orderMode=null; selectedUnits.clear();
+  document.getElementById('explore-banner').classList.remove('vis');
+  const hasTerr=i=>{for(let x=0;x<MW;x++) for(let y=0;y<MH;y++) if(map[x][y].owner===i) return true; return false;};
+  let attempts=0;
+  while(attempts<players.length){
+    if(map.length===0||hasTerr(curP)) break;
+    curP=(curP+1)%players.length; attempts++;
+  }
+  const p=players[curP];
+  document.getElementById('lt-name').innerHTML=`<span class="dot" style="background:${p.color}"></span>${p.name}`;
+  document.getElementById('lt-pass').value='';
+  document.getElementById('login-err').textContent='';
+  showScreen('screen-login');
+  setTimeout(()=>document.getElementById('lt-pass').focus(),80);
+}
+function doLogin(){
+  if(document.getElementById('lt-pass').value===players[curP].password){
+    document.getElementById('login-err').textContent='';
+    startTurn();
+  } else document.getElementById('login-err').textContent='Mot de passe incorrect.';
+}
+
+// ══════════════════════════════════════════════════
+//  TOUR
+// ══════════════════════════════════════════════════
+function startTurn(){
+  const p=players[curP];
+
+  // 1a. Résoudre les attaques en cours
+  const combatLogs=resolveAttacks(curP);
+
+  // 1b. Résoudre explorations
+  const revealed=resolveExploration(curP);
+
+  // 2. Revenus
+  const gained=collectIncome(curP);
+  p.money+=gained;
+
+  // HUD
+  document.getElementById('hud-name').textContent=p.name;
+  document.getElementById('hud-dot').style.background=p.color;
+  document.getElementById('hud-money').textContent=p.money;
+  document.getElementById('hud-turn').textContent='Tour '+turnN;
+  const inc=calcTotalIncome(curP);
+  document.getElementById('hud-income').textContent=inc>0?`+${inc}$/tour`:'';
+  updateScoutsHud();
+
+  selTile=null; orderMode=null; selectedUnits.clear();
+  document.getElementById('action-panel').classList.remove('vis');
+  document.getElementById('explore-banner').classList.remove('vis');
+  closeBuildModal();
+  showScreen('screen-game');
+
+  // Popups
+  const msgs=[];
+  if(revealed>0) msgs.push('🧭 '+revealed+' case'+(revealed>1?'s':'')+' explorée'+(revealed>1?'s':''));
+  if(gained>0) msgs.push('+'+gained+' $ de revenus');
+  if(msgs.length) showPopup('income-popup', msgs.join(' · '), 2500);
+
+  // Log de combat dans la modal
+  if(combatLogs.length){
+    const modal=document.getElementById('combat-modal');
+    const body=document.getElementById('cm-body');
+    body.innerHTML='';
+    combatLogs.forEach(l=>{
+      const d=document.createElement('div');
+      d.className='cm-line';
+      d.textContent=l;
+      if(l.includes('VICTOIRE')) d.classList.add('cm-win');
+      if(l.includes('DÉFAITE')) d.classList.add('cm-lose');
+      body.appendChild(d);
+    });
+    modal.classList.add('vis');
+  }
+
+  setTimeout(()=>{
+    fitCanvas();
+    calcVisible(curP);
+    centerOnSpawn(); draw();
+  },30);
+}
+
+function endTurn(){
+  selTile=null; orderMode=null; selectedUnits.clear();
+  document.getElementById('action-panel').classList.remove('vis');
+  document.getElementById('explore-banner').classList.remove('vis');
+  closeBuildModal();
+  curP=(curP+1)%players.length;
+  if(curP===0) turnN++;
+  if(checkVictory()) return;
+  showLogin();
+}
+
+function updateScoutsHud(){
+  const avail=getAvailableScouts(curP).length;
+  const pendingEx=countPendingOrders(curP);
+  const pendingAtk=countPendingAttacks(curP);
+  const el=document.getElementById('hud-scouts');
+  const parts=[];
+  if(avail>0) parts.push(avail+' dispo');
+  if(pendingEx>0) parts.push(pendingEx+' en exploration');
+  if(pendingAtk>0) parts.push(pendingAtk+' en marche ⚔️');
+  if(parts.length) el.textContent='🧭 '+parts.join(' · ');
+  else el.textContent='';
+}
+
+// ══════════════════════════════════════════════════
+//  MODE EXPLORATION (clic cible)
+// ══════════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════
+//  CONSTRUCTION
+// ══════════════════════════════════════════════════
+function isNearForest(x,y,d){
+  for(let dx=-d;dx<=d;dx++) for(let dy=-d;dy<=d;dy++){
+    if(!dx&&!dy)continue;
+    const nx=x+dx,ny=y+dy;
+    if(nx>=0&&nx<MW&&ny>=0&&ny<MH&&map[nx][ny].type==='foret') return true;
+  }
+  return false;
+}
+
+function openBuildModal(){
+  if(!selTile) return;
+  const{x,y}=selTile;
+  const t=map[x][y];
+  if(t.owner!==curP||t.building) return;
+  buildTarget={x,y};
+  const p=players[curP];
+  const container=document.getElementById('bm-options');
+  container.innerHTML='';
+
+  // Section économique
+  const econTitle=document.createElement('div');
+  econTitle.style.cssText='font-family:Cinzel,serif;font-size:.68rem;color:var(--muted);letter-spacing:.15em;padding:.2rem 0;border-bottom:1px solid var(--border);margin-bottom:.3rem;';
+  econTitle.textContent='ÉCONOMIE';
+  container.appendChild(econTitle);
+
+  Object.entries(ECOBUILDINGS).forEach(([key,b])=>{
+    const canAfford=p.money>=b.cost;
+    const condOk=b.check(x,y);
+    const disabled=!canAfford||!condOk;
+    let reason=!canAfford?`Manque ${b.cost-p.money}$`:(!condOk?'Trop loin d\'une forêt':'');
+    const div=document.createElement('div');
+    div.className='bm-opt'+(disabled?' disabled':'');
+    div.innerHTML=`<span class="bm-icon">${b.icon}</span>
+      <div><div class="bm-name">${b.name}</div>
+      <div class="bm-desc">${b.desc}${reason?` — <span style="color:#e74c3c">${reason}</span>`:''}</div></div>
+      <span class="bm-cost">${b.cost} $</span>`;
+    if(!disabled) div.onclick=()=>doBuild(key,'eco');
+    container.appendChild(div);
+  });
+
+  // Section militaire
+  const milTitle=document.createElement('div');
+  milTitle.style.cssText='font-family:Cinzel,serif;font-size:.68rem;color:var(--muted);letter-spacing:.15em;padding:.2rem 0;border-bottom:1px solid var(--border);margin:.4rem 0 .3rem;';
+  milTitle.textContent='MILITAIRE (caserne)';
+  container.appendChild(milTitle);
+
+  Object.entries(BARRACKS).forEach(([key,b])=>{
+    const canAfford=p.money>=b.cost;
+    const u=UNITS[b.unit];
+    const div=document.createElement('div');
+    div.className='bm-opt'+(!canAfford?' disabled':'');
+    const exploreStr=u.explore>0?`explore ${u.explore}case/tour`:'ne peut pas explorer';
+    div.innerHTML=`<span class="bm-icon">${b.icon}</span>
+      <div><div class="bm-name">${b.name}</div>
+      <div class="bm-desc">${u.icon} ${u.name} — ${u.power} force — ${exploreStr}${!canAfford?` — <span style="color:#e74c3c">Manque ${b.cost-p.money}$</span>`:''}</div></div>
+      <span class="bm-cost">${b.cost} $</span>`;
+    if(canAfford) div.onclick=()=>doBuild(key,'military');
+    container.appendChild(div);
+  });
+
+  document.getElementById('build-modal').classList.add('vis');
+}
+
+function closeBuildModal(){
+  document.getElementById('build-modal').classList.remove('vis');
+  buildTarget=null;
+}
+
+function doBuild(key, category){
+  if(!buildTarget) return;
+  const{x,y}=buildTarget;
+  const t=map[x][y];
+  const p=players[curP];
+  if(t.owner!==curP||t.building) return;
+
+  if(category==='eco'){
+    const b=ECOBUILDINGS[key];
+    if(!b||p.money<b.cost||!b.check(x,y)) return;
+    p.money-=b.cost;
+    t.building=key;
+  } else {
+    const b=BARRACKS[key];
+    if(!b||p.money<b.cost) return;
+    p.money-=b.cost;
+    t.building=key;
+    t.unit=b.unit; // place l'unité dans la caserne
+  }
+
+  document.getElementById('hud-money').textContent=p.money;
+  const inc=calcTotalIncome(curP);
+  document.getElementById('hud-income').textContent=inc>0?`+${inc}$/tour`:'';
+  updateScoutsHud();
+  closeBuildModal();
+  clearSel();
+}
+
+// ══════════════════════════════════════════════════
+//  SÉLECTION MULTI-TROUPES
+// ══════════════════════════════════════════════════
+function toggleUnitSelection(x,y){
+  const key=`${x},${y}`;
+  if(selectedUnits.has(key)) selectedUnits.delete(key);
+  else selectedUnits.add(key);
+  updateActionPanel(x,y);
+  draw();
+}
+
+function updateActionPanel(x,y){
+  const t=map[x][y];
+  const types={mer:'Mer',plaine:'Plaine',foret:'Forêt'};
+  const ownerStr=t.owner===null?'Neutre':t.owner===curP?'Ta case':players[t.owner].name;
+  const bDef=t.building?(ECOBUILDINGS[t.building]||BARRACKS[t.building]):null;
+  const bStr=bDef?` [${bDef.icon} ${bDef.name}]`:'';
+  const uStr=t.unit?` ${UNITS[t.unit].icon}`:'';
+  const selCount=selectedUnits.size;
+  const selLabel=selCount>0?` · ${selCount} troupe${selCount>1?'s':''} sélectionnée${selCount>1?'s':''}`:''
+  document.getElementById('a-info').textContent=`${types[t.type]} — ${ownerStr}${bStr}${uStr}${selLabel}`;
+
+  const explorers=[...selectedUnits].filter(k=>{
+    const[ex,ey]=k.split(',').map(Number);
+    const et=map[ex][ey];
+    return et.unit&&UNITS[et.unit]&&UNITS[et.unit].explore>0&&!et.exploreTarget&&!et.attackTarget;
+  });
+  const attackers=[...selectedUnits].filter(k=>{
+    const[ex,ey]=k.split(',').map(Number);
+    const et=map[ex][ey];
+    return et.unit&&UNITS[et.unit]&&!et.attackTarget&&!et.exploreTarget;
+  });
+  const btnScout=document.getElementById('btn-send-scout');
+  btnScout.disabled=explorers.length===0;
+  btnScout.textContent=explorers.length>0?'🧭 Explorer ('+explorers.length+')':'🧭 Explorer';
+
+  const btnAtk=document.getElementById('btn-attack');
+  btnAtk.disabled=attackers.length===0;
+  btnAtk.textContent=attackers.length>0?'⚔️ Attaquer ('+attackers.length+')':'⚔️ Attaquer';
+
+  const canBuild=t.owner===curP&&!t.building&&t.type!=='mer';
+  document.getElementById('btn-build').disabled=!canBuild;
+  document.getElementById('action-panel').classList.add('vis');
+}
+
+function enterOrderMode(mode){
+  let eligible;
+  if(mode==='explore'){
+    eligible=[...selectedUnits].filter(k=>{
+      const[ex,ey]=k.split(',').map(Number);
+      const et=map[ex][ey];
+      return et.unit&&UNITS[et.unit]&&UNITS[et.unit].explore>0&&!et.exploreTarget&&!et.attackTarget;
+    });
+  } else {
+    eligible=[...selectedUnits].filter(k=>{
+      const[ex,ey]=k.split(',').map(Number);
+      const et=map[ex][ey];
+      return et.unit&&UNITS[et.unit]&&!et.attackTarget&&!et.exploreTarget;
+    });
+  }
+  if(eligible.length===0){showPopup('scout-popup','Aucune troupe disponible sélectionnée.',1800);return;}
+  orderMode=mode;
+  document.getElementById('action-panel').classList.remove('vis');
+  const hint=mode==='explore'
+    ? eligible.length+' éclaireur'+(eligible.length>1?'s':'')+' — '+MAX_TILES_PER_TURN+' cases max'
+    : eligible.length+' troupe'+(eligible.length>1?'s':'')+' — cliquez la cible ennemie';
+  document.getElementById('order-banner-hint').textContent=hint;
+  document.getElementById('explore-banner').classList.add('vis');
+  document.getElementById('map-canvas').classList.add('explore-mode');
+  draw();
+}
+
+function cancelOrderMode(){
+  orderMode=null;
+  document.getElementById('explore-banner').classList.remove('vis');
+  document.getElementById('map-canvas').classList.remove('explore-mode');
+  draw();
+}
+
+function commitOrderTarget(tx,ty){
+  if(!orderMode)return;
+  if(map[tx][ty].type==='mer'){showPopup('scout-popup','Impossible : case de mer.',1500);cancelOrderMode();return;}
+  if(orderMode==='explore'){
+    let sent=0;
+    selectedUnits.forEach(k=>{
+      const[ex,ey]=k.split(',').map(Number);
+      const et=map[ex][ey];
+      if(et.unit&&UNITS[et.unit]&&UNITS[et.unit].explore>0&&!et.exploreTarget&&!et.attackTarget){
+        et.exploreTarget={tx,ty}; sent++;
+      }
+    });
+    selectedUnits.clear();
+    updateScoutsHud();
+    showPopup('scout-popup',sent+' troupe'+(sent>1?'s':'')+' envoyée'+(sent>1?'s':'')+' — résultat au prochain tour.',2200);
+  } else if(orderMode==='attack'){
+    const tgt=map[tx][ty];
+    if(tgt.owner===curP){showPopup('scout-popup','Vous ne pouvez pas attaquer votre propre case.',1800);cancelOrderMode();return;}
+    let sent=0;
+    selectedUnits.forEach(k=>{
+      const[ex,ey]=k.split(',').map(Number);
+      const et=map[ex][ey];
+      if(et.unit&&UNITS[et.unit]&&!et.attackTarget&&!et.exploreTarget){
+        et.attackTarget={tx,ty};
+        et.marchPos={x:ex,y:ey};
+        sent++;
+      }
+    });
+    selectedUnits.clear();
+    updateScoutsHud();
+    showPopup('scout-popup',sent+' troupe'+(sent>1?'s':'')+' en marche vers ('+tx+','+ty+').',2200);
+  }
+  cancelOrderMode();
+}
+
+// ══════════════════════════════════════════════════
+//  SÉLECTION
+// ══════════════════════════════════════════════════
+function selectTile(x,y){
+  if(x<0||x>=MW||y<0||y>=MH) return;
+
+  // En mode ordre : clic = choisir la cible
+  if(orderMode){
+    commitOrderTarget(x,y);
+    return;
+  }
+
+  if(!visibleTiles.has(`${x},${y}`)&&map[x][y].type!=='mer') return;
+
+  const t=map[x][y];
+  const key=`${x},${y}`;
+
+  // Clic sur une caserne amie avec unité → toggle sélection
+  if(t.owner===curP && t.unit){
+    toggleUnitSelection(x,y);
+    selTile={x,y};
+    return;
+  }
+
+  // Clic sur autre case → désélectionner tout, afficher infos
+  selectedUnits.clear();
+  selTile={x,y};
+  updateActionPanel(x,y);
+  draw();
+}
+
+function clearSel(){
+  selTile=null;
+  selectedUnits.clear();
+  document.getElementById('action-panel').classList.remove('vis');
+  draw();
+}
+
+// ══════════════════════════════════════════════════
+//  CANVAS / CAMÉRA
+// ══════════════════════════════════════════════════
+function canvas(){return document.getElementById('map-canvas');}
+function fitCanvas(){
+  const c=canvas(),area=document.querySelector('.map-area');
+  c.width=area.clientWidth||800; c.height=area.clientHeight||500;
+}
+function clampCam(){
+  const c=canvas();
+  // Utiliser clientWidth/clientHeight = taille CSS réelle affichée
+  const vw=(c.clientWidth||c.width)/cam.zoom;
+  const vh=(c.clientHeight||c.height)/cam.zoom;
+  const mapW=MW*TS, mapH=MH*TS;
+  // Marge généreuse : on peut sortir d'un demi-écran au-delà des bords
+  const mx=vw*0.5, my=vh*0.5;
+  cam.ox=clamp(cam.ox,-mx, mapW-vw+mx);
+  cam.oy=clamp(cam.oy,-my, mapH-vh+my);
+}
+function centerOnSpawn(){
+  const p=players[curP];
+  const c=canvas();
+  cam.zoom=1.4;
+  cam.ox=p.spawnX*TS - (c.clientWidth||c.width)/(2*cam.zoom);
+  cam.oy=p.spawnY*TS - (c.clientHeight||c.height)/(2*cam.zoom);
+  clampCam(); draw();
+}
+function screenToTile(sx,sy){
+  const c=canvas(),rect=c.getBoundingClientRect();
+  const cx=(sx-rect.left)/c.clientWidth*c.width;
+  const cy=(sy-rect.top)/c.clientHeight*c.height;
+  return{x:Math.floor((cx/cam.zoom+cam.ox)/TS), y:Math.floor((cy/cam.zoom+cam.oy)/TS)};
+}
+
+// ══════════════════════════════════════════════════
+//  DESSIN
+// ══════════════════════════════════════════════════
+const TC={mer:'#1a3a5c',plaine:'#4a7c3f',foret:'#1e4d22'};
+const TB={mer:'#1c4268',plaine:'#3a6430',foret:'#173d1a'};
+function hexRgb(h){return{r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)};}
+
+function draw(){
+  if(!map.length) return;
+  const c=canvas(); if(!c) return;
+  const area=document.querySelector('.map-area');
+  const aw=area.clientWidth||800, ah=area.clientHeight||500;
+  if(c.width!==aw||c.height!==ah){c.width=aw; c.height=ah;}
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.scale(cam.zoom,cam.zoom);
+  ctx.translate(-cam.ox,-cam.oy);
+  const marchMarkers=[];
+
+  const x0=Math.max(0,Math.floor(cam.ox/TS));
+  const y0=Math.max(0,Math.floor(cam.oy/TS));
+  const x1=Math.min(MW-1,Math.ceil((cam.ox+W/cam.zoom)/TS));
+  const y1=Math.min(MH-1,Math.ceil((cam.oy+H/cam.zoom)/TS));
+
+  for(let x=x0;x<=x1;x++){
+    for(let y=y0;y<=y1;y++){
+      const t=map[x][y];
+      const px=x*TS, py=y*TS;
+      const key=`${x},${y}`;
+      const visible=visibleTiles.has(key)||t.type==='mer';
+
+      if(!visible){
+        ctx.fillStyle='#080e08';
+        ctx.fillRect(px,py,TS,TS);
+        continue;
+      }
+
+      ctx.fillStyle=TC[t.type];
+      ctx.fillRect(px,py,TS,TS);
+      const g=(x*7+y*13)%7;
+      if(g<2){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(px,py,TS,TS);}
+      else if(g===6){ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(px,py,TS,TS);}
+
+      if(t.owner!==null){
+        const{r,g:gv,b}=hexRgb(players[t.owner].color);
+        ctx.fillStyle=`rgba(${r},${gv},${b},${t.owner===curP?0.22:0.1})`;
+        ctx.fillRect(px,py,TS,TS);
+      }
+
+      ctx.strokeStyle=TB[t.type]; ctx.lineWidth=0.5;
+      ctx.strokeRect(px+0.25,py+0.25,TS-0.5,TS-0.5);
+
+      if(selTile&&selTile.x===x&&selTile.y===y){
+        ctx.fillStyle='rgba(255,255,255,0.13)'; ctx.fillRect(px,py,TS,TS);
+        ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+        ctx.strokeRect(px+1,py+1,TS-2,TS-2);
+      }
+
+      if(t.owner!==null) drawBorder(ctx,x,y,t.owner);
+
+      const bDef=t.building?(ECOBUILDINGS[t.building]||BARRACKS[t.building]):null;
+      if(bDef){
+        const fs=TS*0.48;
+        ctx.font=`${fs}px serif`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(bDef.icon, px+TS/2, py+TS/2+1);
+      }
+
+      if(t.unit && UNITS[t.unit]){
+        const u=UNITS[t.unit];
+        ctx.font=(TS*0.32)+'px serif';
+        ctx.textAlign='right'; ctx.textBaseline='bottom';
+        ctx.fillText(u.icon, px+TS-2, py+TS-1);
+        if(t.exploreTarget){
+          ctx.font=(TS*0.22)+'px serif';
+          ctx.textAlign='left'; ctx.textBaseline='top';
+          ctx.fillText('🕐', px+2, py+2);
+        }
+        if(t.attackTarget){
+          ctx.font=(TS*0.22)+'px serif';
+          ctx.textAlign='left'; ctx.textBaseline='top';
+          ctx.fillText('⚔️', px+2, py+2);
+        }
+      }
+
+      // Guard ajouté : on ne push que si l'unité est valide
+      if(t.attackTarget && t.marchPos && t.unit && UNITS[t.unit]){
+        marchMarkers.push({mx:t.marchPos.x, my:t.marchPos.y, pi:t.owner, unit:t.unit});
+      }
+
+      if(selectedUnits.has(key)){
+        ctx.strokeStyle='#f1c40f'; ctx.lineWidth=2.5;
+        ctx.strokeRect(px+1,py+1,TS-2,TS-2);
+        ctx.fillStyle='rgba(241,196,15,0.12)'; ctx.fillRect(px,py,TS,TS);
+      }
+      if(orderMode && selectedUnits.has(key)){
+        ctx.strokeStyle='#3498db'; ctx.lineWidth=2.5;
+        ctx.strokeRect(px+1,py+1,TS-2,TS-2);
+      }
+
+      if(t.owner!==null&&t.owner!==curP&&visible){
+        ctx.fillStyle='rgba(0,0,0,0.16)'; ctx.fillRect(px,py,TS,TS);
+      }
+    }
+  }
+
+  marchMarkers.forEach(({mx,my,pi,unit})=>{
+    // Guard ajouté : on vérifie que tout est valide avant de dessiner
+    if(!unit || !UNITS[unit]) return;
+    if(!visibleTiles.has(mx+','+my)) return;
+    const ppx=mx*TS, ppy=my*TS;
+    const col=players[pi].color;
+    const{r,g,b}=hexRgb(col);
+    ctx.fillStyle='rgba('+r+','+g+','+b+',0.7)';
+    ctx.beginPath(); ctx.arc(ppx+TS/2,ppy+TS/2,TS*0.22,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.font=(TS*0.28)+'px serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(UNITS[unit].icon, ppx+TS/2, ppy+TS/2+1);
+  });
+
+  ctx.restore();
+  document.getElementById('zoom-ind').textContent=Math.round(cam.zoom*100)+'%';
+}
+
+function drawBorder(ctx,x,y,oi){
+  const col=players[oi].color;
+  const px=x*TS, py=y*TS;
+  ctx.strokeStyle=col; ctx.lineWidth=2;
+  [[-1,0,'L'],[1,0,'R'],[0,-1,'T'],[0,1,'B']].forEach(([dx,dy,s])=>{
+    const nx=x+dx, ny=y+dy;
+    const nb=(nx>=0&&nx<MW&&ny>=0&&ny<MH)?map[nx][ny]:null;
+    if(!nb||nb.owner!==oi){
+      ctx.beginPath();
+      if(s==='L'){ctx.moveTo(px+1,py);ctx.lineTo(px+1,py+TS);}
+      else if(s==='R'){ctx.moveTo(px+TS-1,py);ctx.lineTo(px+TS-1,py+TS);}
+      else if(s==='T'){ctx.moveTo(px,py+1);ctx.lineTo(px+TS,py+1);}
+      else{ctx.moveTo(px,py+TS-1);ctx.lineTo(px+TS,py+TS-1);}
+      ctx.stroke();
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  EVENTS CAMÉRA
+// ══════════════════════════════════════════════════
+(function(){
+  const c=document.getElementById('map-canvas');
+  let drag=false,moved=false,mx0=0,my0=0,ox0=0,oy0=0;
+  c.addEventListener('mousedown',e=>{
+    if(e.button!==0)return;
+    drag=true;moved=false;mx0=e.clientX;my0=e.clientY;ox0=cam.ox;oy0=cam.oy;
+    if(!orderMode) c.classList.add('dragging');
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!drag)return;
+    const dx=e.clientX-mx0,dy=e.clientY-my0;
+    if(Math.abs(dx)>3||Math.abs(dy)>3)moved=true;
+    if(!orderMode){cam.ox=ox0-dx/cam.zoom;cam.oy=oy0-dy/cam.zoom;clampCam();draw();}
+  });
+  window.addEventListener('mouseup',e=>{
+    if(!drag)return; drag=false; c.classList.remove('dragging');
+    if(!moved){const{x,y}=screenToTile(e.clientX,e.clientY); selectTile(x,y);}
+  });
+  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&orderMode) cancelOrderMode();});
+  c.addEventListener('wheel',e=>{
+    e.preventDefault();
+    if(orderMode)return;
+    const rect=c.getBoundingClientRect();
+    const cx=(e.clientX-rect.left)/c.clientWidth*c.width;
+    const cy=(e.clientY-rect.top)/c.clientHeight*c.height;
+    const wx=cx/cam.zoom+cam.ox, wy=cy/cam.zoom+cam.oy;
+    cam.zoom=clamp(cam.zoom*(e.deltaY<0?1.13:0.88),ZMIN,ZMAX);
+    cam.ox=wx-cx/cam.zoom; cam.oy=wy-cy/cam.zoom;
+    clampCam(); draw();
+  },{passive:false});
+  let touches={},ld=0;
+  c.addEventListener('touchstart',e=>{
+    Array.from(e.changedTouches).forEach(t=>touches[t.identifier]={x:t.clientX,y:t.clientY});
+    const ts=Object.values(touches);
+    if(ts.length===1){drag=true;moved=false;mx0=ts[0].x;my0=ts[0].y;ox0=cam.ox;oy0=cam.oy;}
+  },{passive:true});
+  c.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach(t=>touches[t.identifier]={x:t.clientX,y:t.clientY});
+    const ts=Object.values(touches);
+    if(ts.length===1){
+      const dx=ts[0].x-mx0,dy=ts[0].y-my0;
+      if(Math.abs(dx)>3||Math.abs(dy)>3)moved=true;
+      if(!orderMode){cam.ox=ox0-dx/cam.zoom;cam.oy=oy0-dy/cam.zoom;clampCam();draw();}
+    } else if(ts.length===2){
+      const d=Math.hypot(ts[0].x-ts[1].x,ts[0].y-ts[1].y);
+      if(ld&&!orderMode){cam.zoom=clamp(cam.zoom*(d/ld),ZMIN,ZMAX);clampCam();draw();}
+      ld=d;
+    }
+  },{passive:false});
+  c.addEventListener('touchend',e=>{
+    Array.from(e.changedTouches).forEach(t=>delete touches[t.identifier]);
+    if(Object.keys(touches).length<2)ld=0;
+    if(!moved&&Object.keys(touches).length===0){
+      const t=e.changedTouches[0];
+      const{x,y}=screenToTile(t.clientX,t.clientY); selectTile(x,y);
+    }
+    drag=false;
+  });
+})();
+
+window.addEventListener('resize',()=>{
+  if(document.getElementById('screen-game').classList.contains('active')){fitCanvas();clampCam();draw();}
+});
+
+// ══════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+function adj4(x,y){return[[-1,0],[1,0],[0,-1],[0,1]].map(([dx,dy])=>({x:x+dx,y:y+dy})).filter(({x,y})=>x>=0&&x<MW&&y>=0&&y<MH);}
+function adjPlayable(x,y){return adj4(x,y).filter(({x,y})=>map[x][y].type!=='mer');}
+function showPopup(id,msg,duration){
+  const el=document.getElementById(id);
+  el.textContent=msg; el.classList.add('vis');
+  setTimeout(()=>el.classList.remove('vis'),duration);
+}
+
+addPlayer(); addPlayer();
+</script>
+</body>
+</html>

@@ -25,19 +25,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .frow{display:flex;flex-direction:column;gap:.2rem;margin-bottom:.55rem;}
 .frow:last-child{margin-bottom:0;}
 .frow label{font-size:.72rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
-.frow input{background:rgba(0,0,0,.45);border:1px solid var(--border);color:var(--text);font-family:'Crimson Pro',serif;font-size:.95rem;padding:.32rem .6rem;outline:none;width:100%;transition:border-color .2s;}
-.frow input:focus{border-color:var(--gold);}
+.frow input,.frow select{background:rgba(0,0,0,.45);border:1px solid var(--border);color:var(--text);font-family:'Crimson Pro',serif;font-size:.95rem;padding:.32rem .6rem;outline:none;width:100%;transition:border-color .2s;}
+.frow select{cursor:pointer;}
+.frow input:focus,.frow select:focus{border-color:var(--gold);}
+.frow select option{background:#101810;color:var(--text);}
+.bot-help{font-size:.72rem;color:var(--muted);line-height:1.25;}
 .prow{display:flex;gap:.4rem;align-items:flex-end;}
 .prow input{flex:1;}
 .btn-gen{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Crimson Pro',serif;font-size:.7rem;padding:.32rem .5rem;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .btn-gen:hover{border-color:var(--gold);color:var(--gold);}
 .btn-rm{position:absolute;top:.5rem;right:.7rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;transition:color .2s;}
 .btn-rm:hover{color:#c0392b;}
-.menu-actions{display:flex;gap:.6rem;}
+.menu-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
 .btn-add{flex:0 0 auto;background:none;border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:.8rem;padding:.6rem 1rem;cursor:pointer;letter-spacing:.1em;transition:all .2s;}
 .btn-add:hover{background:rgba(201,168,76,.08);border-color:var(--gold-l);}
 .btn-start{flex:1;background:rgba(201,168,76,.12);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.9rem;padding:.6rem 1.2rem;cursor:pointer;letter-spacing:.15em;transition:all .2s;}
 .btn-start:hover{background:rgba(201,168,76,.22);}
+.btn-et:disabled{opacity:.45;cursor:wait;}
 .menu-err{color:#c0392b;font-size:.8rem;text-align:center;margin-top:.6rem;min-height:1.1em;}
 
 /* LOGIN */
@@ -98,6 +102,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* Bandeau mode exploration */
 #explore-banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(52,152,219,.18);border:1px solid #3498db;padding:.4rem 1rem;font-family:'Cinzel',serif;font-size:.72rem;color:#7ec8e3;letter-spacing:.06em;z-index:25;display:none;pointer-events:none;max-width:96vw;text-align:center;line-height:1.45;}
 #explore-banner.vis{display:block;}
+#bot-banner{position:absolute;top:8px;left:8px;background:rgba(8,16,8,.92);border:1px solid var(--gold);padding:.4rem .7rem;font-family:'Cinzel',serif;font-size:.68rem;color:var(--gold-l);letter-spacing:.05em;z-index:26;display:none;pointer-events:none;max-width:min(360px,45vw);line-height:1.35;}
+#bot-banner.vis{display:block;}
+#screen-game.bot-active #map-canvas,#screen-game.bot-active #action-panel{pointer-events:none;}
 #order-preview{display:block;color:#e8c96a;font-family:'Crimson Pro',serif;font-size:.78rem;letter-spacing:0;margin-top:.15rem;}
 
 /* Modal construction */
@@ -140,7 +147,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <div class="menu-panel">
     <div class="players-list" id="players-list"></div>
     <div class="menu-actions">
-      <button class="btn-add" onclick="addPlayer()">+ Joueur</button>
+      <button class="btn-add" onclick="addPlayer(false)">+ Joueur</button>
+      <button class="btn-add" onclick="addPlayer(true)">+ Bot IA</button>
       <button class="btn-start" onclick="startGame()">Commencer</button>
     </div>
     <p class="menu-err" id="menu-err"></p>
@@ -179,13 +187,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="hud-commands" id="hud-commands">Ordres 2/2</div>
     <div class="hud-turn" id="hud-turn">Tour 1</div>
     <button class="btn-center" onclick="centerOnSpawn()" title="Recentrer sur mon camp">🏠</button>
-    <button class="btn-et" onclick="endTurn()">Fin de tour →</button>
+    <button class="btn-et" id="btn-end-turn" onclick="endTurn()">Fin de tour →</button>
   </div>
   <div class="map-area">
     <canvas id="map-canvas"></canvas>
 
     <!-- Bandeau mode ordre -->
     <div id="explore-banner">⬤ Cliquez une case cible — <span id="order-banner-hint"></span> — Échap pour annuler<span id="order-preview"></span></div>
+    <div id="bot-banner"><span id="bot-banner-text">🤖 L’IA réfléchit…</span></div>
 
     <!-- Panel action case -->
     <div id="action-panel">
@@ -267,12 +276,21 @@ const DEFBUILDINGS={
   fort:{name:'Fortin',icon:'🛡️',cost:220,defense:1.75,desc:'+75% de défense'}
 };
 
+const BOT_LEVELS={
+  easy:{label:'Facile',help:'Expansion simple, peu d’ordres et davantage d’erreurs.',noise:.42,orderLimit:1,econTarget:120,reserve:0,maxArmy:2,minAttack:.72,aggression:.42,fortifyRange:1},
+  normal:{label:'Normal',help:'Équilibre économie, objectifs et défense.',noise:.20,orderLimit:2,econTarget:230,reserve:80,maxArmy:3,minAttack:.88,aggression:.58,fortifyRange:2},
+  hard:{label:'Difficile',help:'Course aux sanctuaires, renforts adaptés et attaques calculées.',noise:.08,orderLimit:4,econTarget:360,reserve:140,maxArmy:4,minAttack:.98,aggression:.76,fortifyRange:3},
+  expert:{label:'Expert',help:'Planifie l’économie, les contres, les risques et plusieurs fronts.',noise:.02,orderLimit:7,econTarget:480,reserve:170,maxArmy:6,minAttack:.90,aggression:.92,fortifyRange:5}
+};
+const BOT_SCOUT_ANCHORS=[{x:8,y:8},{x:27,y:8},{x:27,y:19},{x:8,y:19},{x:18,y:13}];
+
 // ══════════════════════════════════════════════════
 //  ÉTAT GLOBAL
 // ══════════════════════════════════════════════════
 let players=[];
 let curP=0, turnN=1;
 let commandsRemaining=0, currentCommandLimit=BASE_COMMANDS;
+let botThinking=false;
 let map=[];
 let selTile=null;
 let visibleTiles=new Set();
@@ -289,11 +307,21 @@ let cam={ox:0, oy:0, zoom:1.0};
 // ══════════════════════════════════════════════════
 //  MENU
 // ══════════════════════════════════════════════════
-function addPlayer(){
+function addPlayer(isBot=false){
   if(players.length>=8)return;
-  players.push({name:'',password:'',color:P_COLORS[players.length],money:500,influence:0});
+  const i=players.length;
+  players.push({name:isBot?'Bot '+(i+1):'',password:'',color:P_COLORS[i],money:500,influence:0,isBot,botLevel:'normal'});
   renderMenu();
 }
+function setPlayerType(i,type){
+  const p=players[i];
+  if(!p)return;
+  p.isBot=type==='bot';
+  if(p.isBot){if(!p.name.trim())p.name='Bot '+(i+1);p.password='';}
+  else if(p.name==='Bot '+(i+1))p.name='';
+  renderMenu();
+}
+function setBotLevel(i,level){if(players[i]&&BOT_LEVELS[level]){players[i].botLevel=level;renderMenu();}}
 function removePlayer(i){
   if(players.length<=1)return;
   players.splice(i,1);
@@ -306,16 +334,28 @@ function renderMenu(){
   players.forEach((p,i)=>{
     const d=document.createElement('div');
     d.className='p-entry';
+    const level=BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal;
     d.innerHTML=`
-      <div class="p-title"><span class="cdot" style="background:${p.color}"></span>Joueur ${i+1}</div>
+      <div class="p-title"><span class="cdot" style="background:${p.color}"></span>Participant ${i+1}${p.isBot?' · IA':''}</div>
       ${players.length>1?`<button class="btn-rm" onclick="removePlayer(${i})">✕</button>`:''}
+      <div class="frow"><label>Contrôle</label>
+        <select onchange="setPlayerType(${i},this.value)">
+          <option value="human" ${!p.isBot?'selected':''}>Joueur humain</option>
+          <option value="bot" ${p.isBot?'selected':''}>Bot IA</option>
+        </select></div>
       <div class="frow"><label>Pseudo</label>
-        <input type="text" value="${p.name}" placeholder="Nom" oninput="players[${i}].name=this.value"></div>
-      <div class="frow"><label>Mot de passe</label>
+        <input type="text" value="${p.name}" placeholder="${p.isBot?'Bot '+(i+1):'Nom'}" oninput="players[${i}].name=this.value"></div>
+      ${p.isBot?`<div class="frow"><label>Niveau du bot</label>
+        <select onchange="setBotLevel(${i},this.value)">
+          <option value="easy" ${p.botLevel==='easy'?'selected':''}>Facile</option>
+          <option value="normal" ${p.botLevel==='normal'?'selected':''}>Normal</option>
+          <option value="hard" ${p.botLevel==='hard'?'selected':''}>Difficile</option>
+          <option value="expert" ${p.botLevel==='expert'?'selected':''}>Expert</option>
+        </select><small class="bot-help">${level.help}</small></div>`:`<div class="frow"><label>Mot de passe</label>
         <div class="prow">
           <input type="password" value="${p.password}" placeholder="••••" oninput="players[${i}].password=this.value">
           <button class="btn-gen" onclick="genPwd(${i})">🎲 Générer</button>
-        </div></div>`;
+        </div></div>`}`;
     el.appendChild(d);
   });
 }
@@ -327,14 +367,14 @@ function genPwd(i){
 }
 function startGame(){
   const err=document.getElementById('menu-err');
-  if(players.length<2){err.textContent='Il faut au moins 2 joueurs.';return;}
+  if(players.length<2){err.textContent='Il faut au moins 2 participants.';return;}
+  if(!players.some(p=>!p.isBot)){err.textContent='Il faut au moins un joueur humain.';return;}
   for(const p of players){
-    if(!p.name.trim()){err.textContent='Chaque joueur doit avoir un pseudo.';return;}
-    if(!p.password){err.textContent='Chaque joueur doit avoir un mot de passe.';return;}
-    console.log(p.name+" Password: "+p.password)
+    if(!p.name.trim()){err.textContent='Chaque participant doit avoir un pseudo.';return;}
+    if(!p.isBot&&!p.password){err.textContent='Chaque joueur humain doit avoir un mot de passe.';return;}
   }
   err.textContent='';
-  curP=0; turnN=1; commandsRemaining=0; currentCommandLimit=BASE_COMMANDS;
+  curP=0; turnN=1; commandsRemaining=0; currentCommandLimit=BASE_COMMANDS; botThinking=false;
   visibleTiles.clear(); selectedUnits.clear(); selTile=null; orderMode=null;
   players.forEach(p=>{p.money=500;p.influence=0;p.revealed3x3=null;});
   buildMap();
@@ -344,7 +384,7 @@ function startGame(){
 }
 function restartGame(){
   players=[];curP=0;turnN=1;map=[];selTile=null;visibleTiles.clear();
-  orderMode=null; selectedUnits.clear();commandsRemaining=0;currentCommandLimit=BASE_COMMANDS;
+  orderMode=null; selectedUnits.clear();commandsRemaining=0;currentCommandLimit=BASE_COMMANDS;botThinking=false;
   addPlayer();addPlayer();
   showScreen('screen-menu');
 }
@@ -886,8 +926,11 @@ function checkVictory(){
 //  LOGIN
 // ══════════════════════════════════════════════════
 function showLogin(){
-  orderMode=null; selectedUnits.clear();
+  orderMode=null; selectedUnits.clear(); botThinking=false;
   document.getElementById('explore-banner').classList.remove('vis');
+  document.getElementById('bot-banner').classList.remove('vis');
+  document.getElementById('screen-game').classList.remove('bot-active');
+  document.getElementById('btn-end-turn').disabled=false;
   canvas().classList.remove('explore-mode');
   document.getElementById('order-preview').textContent='';
   let attempts=0;
@@ -896,6 +939,17 @@ function showLogin(){
     curP=(curP+1)%players.length; attempts++;
   }
   const p=players[curP];
+  if(p.isBot){
+    const botPi=curP;
+    botThinking=true;
+    showScreen('screen-game');
+    document.getElementById('screen-game').classList.add('bot-active');
+    document.getElementById('btn-end-turn').disabled=true;
+    document.getElementById('bot-banner-text').textContent='🤖 '+p.name+' ('+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label+') prépare son tour…';
+    document.getElementById('bot-banner').classList.add('vis');
+    setTimeout(()=>{if(curP===botPi&&players[botPi]===p)startTurn();},350);
+    return;
+  }
   document.getElementById('lt-name').innerHTML=`<span class="dot" style="background:${p.color}"></span>${p.name}`;
   document.getElementById('lt-pass').value='';
   document.getElementById('login-err').textContent='';
@@ -914,6 +968,7 @@ function doLogin(){
 // ══════════════════════════════════════════════════
 function startTurn(){
   const p=players[curP];
+  document.getElementById('combat-modal').classList.remove('vis');
 
   // 1a. Résoudre les attaques en cours
   const combatLogs=resolveAttacks(curP);
@@ -930,9 +985,10 @@ function startTurn(){
   currentCommandLimit=commandCapacity(curP);
   commandsRemaining=currentCommandLimit;
   if(checkVictory()) return;
+  botThinking=!!p.isBot;
 
   // HUD
-  document.getElementById('hud-name').textContent=p.name;
+  document.getElementById('hud-name').textContent=p.isBot?'🤖 '+p.name+' · '+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label:p.name;
   document.getElementById('hud-dot').style.background=p.color;
   document.getElementById('hud-money').textContent=p.money;
   document.getElementById('hud-turn').textContent='Tour '+turnN;
@@ -941,6 +997,10 @@ function startTurn(){
   updateScoutsHud();
   updateStrategyHud();
   updateCommandsHud();
+  document.getElementById('btn-end-turn').disabled=botThinking;
+  document.getElementById('screen-game').classList.toggle('bot-active',botThinking);
+  document.getElementById('bot-banner-text').textContent='🤖 '+p.name+' ('+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label+') réfléchit…';
+  document.getElementById('bot-banner').classList.toggle('vis',botThinking);
 
   selTile=null; orderMode=null; selectedUnits.clear();
   document.getElementById('action-panel').classList.remove('vis');
@@ -973,14 +1033,22 @@ function startTurn(){
     modal.classList.add('vis');
   }
 
+  const activePi=curP;
   setTimeout(()=>{
+    if(curP!==activePi||players[activePi]!==p)return;
     fitCanvas();
     calcVisible(curP);
     centerOnSpawn(); draw();
+    if(p.isBot) setTimeout(()=>runBotTurn(activePi),450);
   },30);
 }
 
-function endTurn(){
+function endTurn(fromBot=false){
+  if(botThinking&&!fromBot)return;
+  botThinking=false;
+  document.getElementById('bot-banner').classList.remove('vis');
+  document.getElementById('screen-game').classList.remove('bot-active');
+  document.getElementById('btn-end-turn').disabled=false;
   selTile=null; orderMode=null; selectedUnits.clear();
   document.getElementById('action-panel').classList.remove('vis');
   document.getElementById('explore-banner').classList.remove('vis');
@@ -1022,6 +1090,225 @@ function updateScoutsHud(){
   if(pendingAtk>0) parts.push(pendingAtk+' en marche ⚔️');
   if(parts.length) el.textContent='🧭 '+parts.join(' · ');
   else el.textContent='';
+}
+
+// ══════════════════════════════════════════════════
+//  IA DES BOTS
+//  Heuristiques à information limitée : économie, objectifs, défense,
+//  contres militaires et ordres coordonnés. Les ennemis ne sont lus que
+//  dans les cases visibles par le joueur actif.
+// ══════════════════════════════════════════════════
+function botProfile(pi){return BOT_LEVELS[players[pi].botLevel]||BOT_LEVELS.normal;}
+function botVisibleEnemies(pi){
+  const enemies=[];
+  visibleTiles.forEach(k=>{
+    const [x,y]=k.split(',').map(Number),t=map[x][y];
+    if(t&&t.owner!==null&&t.owner!==pi) enemies.push({x,y,tile:t});
+  });
+  return enemies;
+}
+function botAvailableUnits(pi){
+  const list=[];
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    const t=map[x][y];
+    if(t.owner===pi&&t.unit&&UNITS[t.unit]&&!t.attackTarget&&!t.exploreTarget)
+      list.push({x,y,key:x+','+y,unit:t.unit,tile:t});
+  }
+  return list;
+}
+function botOpenTiles(pi){
+  const list=[];
+  for(let x=0;x<MW;x++) for(let y=0;y<MH;y++){
+    const t=map[x][y];
+    if(t.owner===pi&&!t.building&&t.type!=='mer') list.push({x,y,key:x+','+y,tile:t});
+  }
+  return list;
+}
+function botDistanceToTerritory(x,y,pi){
+  let best=Infinity;
+  for(let ax=0;ax<MW;ax++) for(let ay=0;ay<MH;ay++)
+    if(map[ax][ay].owner===pi) best=Math.min(best,dist(x,y,ax,ay));
+  return best;
+}
+function botDistanceToEnemies(x,y,enemies){
+  if(!enemies.length)return Infinity;
+  return Math.min(...enemies.map(e=>dist(x,y,e.x,e.y)));
+}
+function botPickScored(options,noise){
+  if(!options.length)return null;
+  const ranked=options.slice().sort((a,b)=>b.score-a.score);
+  const breadth=Math.max(1,1+Math.floor(noise*5));
+  const finalists=ranked.slice(0,Math.min(ranked.length,breadth));
+  return finalists[Math.floor(Math.random()*finalists.length)];
+}
+function botExploreGoal(pi,profile,excluded){
+  const knownSites=[];
+  visibleTiles.forEach(k=>{
+    const [x,y]=k.split(',').map(Number),t=map[x][y];
+    if(t&&t.site&&t.owner===null&&!excluded.has(k))
+      knownSites.push({x,y,key:k,kind:'site',score:150-botDistanceToTerritory(x,y,pi)*2});
+  });
+  if(knownSites.length)return botPickScored(knownSites,profile.noise);
+
+  const goals=BOT_SCOUT_ANCHORS.filter(a=>{
+    const key=a.x+','+a.y,t=map[a.x][a.y];
+    if(excluded.has(key)||t.owner===pi)return false;
+    if(visibleTiles.has(key)&&t.owner!==null&&t.owner!==pi)return false;
+    // Si le bot a déjà pris un sanctuaire près de l'ancre, il explore ailleurs.
+    for(let dx=-2;dx<=2;dx++) for(let dy=-2;dy<=2;dy++){
+      const x=a.x+dx,y=a.y+dy;
+      if(x>=0&&x<MW&&y>=0&&y<MH&&map[x][y].site&&map[x][y].owner===pi)return false;
+    }
+    return true;
+  }).map(a=>({x:a.x,y:a.y,key:a.x+','+a.y,kind:'scout',score:70-botDistanceToTerritory(a.x,a.y,pi)*2+(a.x===18&&a.y===13?5:0)}));
+  return botPickScored(goals,profile.noise);
+}
+function botAttackOptions(pi,profile,units,enemies,excluded){
+  const options=[];
+  if(!units.length)return options;
+  enemies.forEach(enemy=>{
+    const key=enemy.x+','+enemy.y,t=enemy.tile;
+    if(excluded.has(key))return;
+    const ranked=units.map(u=>({unit:u.unit,key:u.key,ratio:combatStrengths(u.unit,t).atkPow/Math.max(1,combatStrengths(u.unit,t).defPow)}))
+      .sort((a,b)=>b.ratio-a.ratio);
+    const best=ranked[0];
+    if(!best)return;
+    const min=profile.minAttack*(t.site ? 0.78 : 1);
+    if(best.ratio<min)return;
+    const distance=botDistanceToTerritory(enemy.x,enemy.y,pi);
+    const objective=t.site?115:0;
+    const structure=t.building?22:0;
+    const garrison=t.unit?15:0;
+    const score=objective+structure+garrison+Math.min(2.2,best.ratio)*18-distance*2+profile.aggression*18;
+    options.push({x:enemy.x,y:enemy.y,key,kind:'attack',score,site:!!t.site,ranked});
+  });
+  return options;
+}
+function botBuildAt(pi,x,y,key,category){
+  const tile=map[x][y];
+  if(tile.owner!==pi||tile.building)return false;
+  buildTarget={x,y};
+  doBuild(key,category);
+  return tile.building===key;
+}
+function botChooseUnitType(enemies,profile,money){
+  const visibleUnits=enemies.filter(e=>e.tile.unit&&UNITS[e.tile.unit]);
+  const structures=enemies.filter(e=>e.tile.building);
+  if(money>=UNITS.catapulte.cost&&profile.aggression>=.72&&structures.length>=(profile.noise>.3?2:1))return 'catapulte';
+  if(profile.noise>.3&&Math.random()<profile.noise)return ['soldat','archer','mage'][Math.floor(Math.random()*3)];
+  const choices=['soldat','archer','mage'].map(unit=>({unit,score:visibleUnits.reduce((sum,e)=>sum+(TYPE_ADV[unit].fort===e.tile.unit?2:TYPE_ADV[unit].faible===e.tile.unit?-.6:0),0)}));
+  choices.sort((a,b)=>b.score-a.score);
+  return choices[0].score>0?choices[0].unit:'soldat';
+}
+function botBuildStructures(pi,profile,decisions){
+  const p=players[pi];
+  const enemies=botVisibleEnemies(pi);
+  const open=botOpenTiles(pi);
+
+  // Fortifier en priorité un sanctuaire exposé, mais seulement si le risque est visible.
+  const threatened=open.filter(c=>c.tile.site)
+    .map(c=>({...c,threat:botDistanceToEnemies(c.x,c.y,enemies)}))
+    .filter(c=>c.threat<=profile.fortifyRange)
+    .sort((a,b)=>a.threat-b.threat);
+  if(threatened.length&&p.money>=DEFBUILDINGS.fort.cost+Math.floor(profile.reserve/2)){
+    const t=threatened[0];
+    if(botBuildAt(pi,t.x,t.y,'fort','defense'))decisions.push('fortifie un sanctuaire exposé');
+  }
+
+  // Investir dans le revenu avant de saturer l'armée ; privilégier le meilleur retour.
+  if(calcTotalIncome(pi)<profile.econTarget&&p.money>profile.reserve){
+    const econ=[];
+    botOpenTiles(pi).forEach(tile=>Object.entries(ECOBUILDINGS).forEach(([key,b])=>{
+      if(p.money<b.cost+profile.reserve||!b.check(tile.x,tile.y))return;
+      const threat=botDistanceToEnemies(tile.x,tile.y,enemies);
+      const score=(b.income/b.cost)*100+b.income*.035+(tile.tile.site?12:0)-(threat<=1?18:0);
+      econ.push({x:tile.x,y:tile.y,key,building:b,score});
+    }));
+    const pick=botPickScored(econ,profile.noise);
+    if(pick&&botBuildAt(pi,pick.x,pick.y,pick.key,'eco'))decisions.push('développe son économie');
+  }
+
+  // Construire une force équilibrée, avec des contres selon les troupes visibles.
+  const army=botAvailableUnits(pi).length;
+  const enemyGarrisons=enemies.filter(e=>e.tile.unit).length;
+  const desired=Math.min(profile.maxArmy,2+Math.min(2,countControlledSites(pi))+Math.min(2,enemyGarrisons));
+  if(army<desired){
+    const unit=botChooseUnitType(enemies,profile,p.money);
+    const entry=Object.entries(BARRACKS).find(([,b])=>b.unit===unit);
+    if(entry&&p.money>=entry[1].cost){
+      const sites=botOpenTiles(pi).map(tile=>({...tile,score:(tile.tile.site?35:0)+(tile.tile.type==='foret'?5:0)-Math.min(12,botDistanceToEnemies(tile.x,tile.y,enemies))*1.5}));
+      const location=botPickScored(sites,profile.noise);
+      if(location&&botBuildAt(pi,location.x,location.y,entry[0],'military'))decisions.push('recrute un '+UNITS[unit].name.toLowerCase());
+    }
+  }
+}
+function botSendOrder(pi,mode,target,units,decisions){
+  if(!units.length||commandsRemaining<=0)return false;
+  let sent=0;
+  units.forEach(u=>{
+    const t=map[u.x][u.y];
+    if(t.owner!==pi||!t.unit||t.attackTarget||t.exploreTarget)return;
+    if(mode==='explore'){
+      if(!UNITS[t.unit].explore)return;
+      t.exploreTarget={tx:target.x,ty:target.y};
+    } else {
+      t.attackTarget={tx:target.x,ty:target.y};
+      t.marchPos={x:u.x,y:u.y};
+    }
+    sent++;
+  });
+  if(!sent)return false;
+  commandsRemaining--;
+  updateCommandsHud();
+  updateScoutsHud();
+  if(mode==='attack')decisions.push(target.site?'attaque un sanctuaire':'engage une position ennemie');
+  else decisions.push(target.kind==='site'?'envoie un éclaireur vers un sanctuaire':'explore une nouvelle direction');
+  return true;
+}
+function botIssueOrders(pi,profile,decisions){
+  const enemyTiles=botVisibleEnemies(pi);
+  const excludedGoals=new Set(),excludedAttacks=new Set();
+  let issued=0;
+  const orderLimit=Math.min(profile.orderLimit,commandsRemaining);
+  while(issued<orderLimit&&commandsRemaining>0){
+    const free=botAvailableUnits(pi);
+    if(!free.length)break;
+    const options=[];
+    const attacks=botAttackOptions(pi,profile,free,enemyTiles,excludedAttacks);
+    if(attacks.length)options.push(botPickScored(attacks,profile.noise));
+    const scouts=free.filter(u=>UNITS[u.unit].explore>0);
+    const goal=scouts.length?botExploreGoal(pi,profile,excludedGoals):null;
+    if(goal)options.push({...goal,score:goal.score+profile.aggression*5});
+    const choice=botPickScored(options.filter(Boolean),profile.noise);
+    if(!choice)break;
+    if(choice.kind==='attack'){
+      const threshold=profile.minAttack*(choice.site ? 0.78 : 1);
+      let group=choice.ranked.filter(u=>u.ratio>=threshold);
+      if(choice.site){
+        const groupLimit=Math.max(1,Math.ceil(choice.ranked.length*(.35+profile.aggression*.65)));
+        group=group.slice(0,groupLimit);
+      } else group=group.slice(0,1);
+      const units=group.map(g=>free.find(u=>u.key===g.key)).filter(Boolean);
+      if(!botSendOrder(pi,'attack',choice,units,decisions)){excludedAttacks.add(choice.key);break;}
+      excludedAttacks.add(choice.key);
+    } else {
+      const scout=botPickScored(scouts.map(u=>({unit:u,score:(u.unit==='soldat'?8:u.unit==='mage'?4:6)})),profile.noise);
+      if(!botSendOrder(pi,'explore',choice,[scout.unit],decisions)){excludedGoals.add(choice.key);break;}
+      excludedGoals.add(choice.key);
+    }
+    issued++;
+  }
+}
+function runBotTurn(pi){
+  if(!botThinking||curP!==pi||!players[pi]||!players[pi].isBot)return;
+  const p=players[pi],profile=botProfile(pi),decisions=[];
+  botBuildStructures(pi,profile,decisions);
+  botIssueOrders(pi,profile,decisions);
+  draw();
+  const banner=document.getElementById('bot-banner-text');
+  banner.textContent=decisions.length?p.name+' · '+profile.label+' : '+decisions.slice(0,4).join(' ; '):p.name+' consolide ses positions.';
+  const wait=850+Math.min(decisions.length,4)*180;
+  setTimeout(()=>{if(curP===pi&&players[pi]===p&&botThinking)endTurn(true);},wait);
 }
 
 // ══════════════════════════════════════════════════

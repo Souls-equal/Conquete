@@ -7,6 +7,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:wght@300;400&display=swap');
 :root{--gold:#c9a84c;--gold-l:#e8c96a;--bg:#0d1b0e;--panel:rgba(8,16,8,0.96);--border:rgba(201,168,76,0.35);--text:#e8dfc8;--muted:#9a8e72;}
 *{margin:0;padding:0;box-sizing:border-box;}
+.icon{display:inline-block;width:1.1em;height:1.1em;flex:0 0 auto;vertical-align:-.2em;overflow:visible;}
+.icon-sm{width:.9em;height:.9em;}
+.icon-lg{width:1.55em;height:1.55em;vertical-align:-.35em;}
+.icon-xl{width:2rem;height:2rem;vertical-align:-.45em;}
+.btn-icon{width:1.05em;height:1.05em;}
+.btn-gen .icon{margin-right:.42em;}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Crimson Pro',serif;user-select:none;}
 .screen{display:none;width:100%;height:100%;}
 .screen.active{display:flex;}
@@ -57,7 +63,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 /* VICTOIRE */
 #screen-win{flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#2a1f00,#0d1b0e);}
-.win-title{font-family:'Cinzel',serif;font-size:clamp(1.5rem,5vw,3.5rem);color:var(--gold);letter-spacing:.2em;text-align:center;margin-bottom:.5rem;text-shadow:0 0 60px rgba(201,168,76,.4);}
+.win-title{display:flex;align-items:center;justify-content:center;gap:.55rem;font-family:'Cinzel',serif;font-size:clamp(1.5rem,5vw,3.5rem);color:var(--gold);letter-spacing:.2em;text-align:center;margin-bottom:.5rem;text-shadow:0 0 60px rgba(201,168,76,.4);}
+.win-title .icon{width:1.15em;height:1.15em;}
 .win-sub{font-size:1.1rem;color:var(--muted);margin-bottom:2rem;text-align:center;}
 .btn-restart{background:rgba(201,168,76,.12);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.9rem;padding:.8rem 2rem;cursor:pointer;letter-spacing:.15em;transition:all .2s;}
 .btn-restart:hover{background:rgba(201,168,76,.25);}
@@ -71,12 +78,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .hud-money span{color:var(--gold-l);}
 .hud-income{font-size:.72rem;color:#2ecc71;}
 .hud-scouts{font-size:.72rem;color:#3498db;letter-spacing:.04em;}
-.hud-strategy{font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold-l);white-space:nowrap;}
+.hud-strategy{display:flex;align-items:center;gap:.35rem;font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold-l);white-space:nowrap;}
+.hud-strategy .icon{width:1.05rem;height:1.05rem;}
+.hud-scouts{display:flex;align-items:center;gap:.35rem;}
+.hud-scouts .icon{width:1rem;height:1rem;}
+.hud-bot-mark{display:inline-flex;color:#91c7a0;}
+.hud-bot-mark .icon{width:1rem;height:1rem;}
 .hud-commands{font-family:'Cinzel',serif;font-size:.68rem;color:#7ec8e3;white-space:nowrap;}
 .hud-turn{font-size:.72rem;color:var(--muted);letter-spacing:.08em;margin-left:auto;}
-.btn-et{background:rgba(201,168,76,.1);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.7rem;padding:.3rem .8rem;cursor:pointer;letter-spacing:.1em;transition:all .2s;}
+.btn-et{display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,168,76,.1);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:.7rem;padding:.3rem .8rem;cursor:pointer;letter-spacing:.1em;transition:all .2s;}
 .btn-et:hover{background:rgba(201,168,76,.22);}
-.btn-center{background:none;border:1px solid var(--border);color:var(--muted);font-size:.85rem;padding:.28rem .55rem;cursor:pointer;transition:all .2s;line-height:1;}
+.btn-center{display:inline-flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border);color:var(--muted);font-size:.85rem;padding:.28rem .55rem;cursor:pointer;transition:all .2s;line-height:1;}
+.btn-center .icon{width:1.05rem;height:1.05rem;}
 .btn-center:hover{border-color:var(--gold);color:var(--gold);}
 
 /* Mode exploration — curseur différent */
@@ -90,7 +103,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #action-panel{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);padding:.5rem .85rem;display:none;gap:.45rem;z-index:20;flex-wrap:wrap;justify-content:center;font-size:.78rem;pointer-events:all;max-width:92vw;}
 #action-panel.vis{display:flex;}
 .a-info{color:var(--muted);align-self:center;white-space:normal;max-width:min(280px,68vw);line-height:1.2;}
-.btn-act{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Crimson Pro',serif;font-size:.78rem;padding:.23rem .65rem;cursor:pointer;transition:all .2s;}
+.a-icon{display:inline-flex;align-items:center;color:var(--gold-l);}
+.a-icon .icon{width:1.1rem;height:1.1rem;}
+.btn-act{display:inline-flex;align-items:center;gap:.35rem;background:none;border:1px solid var(--border);color:var(--muted);font-family:'Crimson Pro',serif;font-size:.78rem;padding:.23rem .65rem;cursor:pointer;transition:all .2s;}
 .btn-act:hover:not(:disabled){border-color:var(--gold);color:var(--gold);}
 .btn-act.primary{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08);}
 .btn-act.blue{border-color:#3498db;color:#3498db;background:rgba(52,152,219,.08);}
@@ -102,19 +117,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* Bandeau mode exploration */
 #explore-banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(52,152,219,.18);border:1px solid #3498db;padding:.4rem 1rem;font-family:'Cinzel',serif;font-size:.72rem;color:#7ec8e3;letter-spacing:.06em;z-index:25;display:none;pointer-events:none;max-width:96vw;text-align:center;line-height:1.45;}
 #explore-banner.vis{display:block;}
+.order-mode-icon{display:inline-flex;vertical-align:middle;margin-right:.25rem;color:currentColor;}
+.order-mode-icon .icon{width:1.05rem;height:1.05rem;}
 #bot-banner{position:absolute;top:8px;left:8px;background:rgba(8,16,8,.92);border:1px solid var(--gold);padding:.4rem .7rem;font-family:'Cinzel',serif;font-size:.68rem;color:var(--gold-l);letter-spacing:.05em;z-index:26;display:none;pointer-events:none;max-width:min(360px,45vw);line-height:1.35;}
 #bot-banner.vis{display:block;}
+.bot-banner-icon{display:inline-flex;vertical-align:middle;margin-right:.35rem;color:var(--gold-l);}
+.bot-banner-icon .icon{width:1.05rem;height:1.05rem;}
 #screen-game.bot-active #map-canvas,#screen-game.bot-active #action-panel{pointer-events:none;}
 #order-preview{display:block;color:#e8c96a;font-family:'Crimson Pro',serif;font-size:.78rem;letter-spacing:0;margin-top:.15rem;}
 
 /* Modal construction */
 #build-modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--border);padding:1.3rem 1.7rem;z-index:50;display:none;flex-direction:column;gap:.8rem;min-width:260px;max-width:94vw;max-height:88vh;overflow-y:auto;}
 #build-modal.vis{display:flex;}
-.bm-title{font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold);letter-spacing:.15em;}
+.bm-title{display:flex;align-items:center;gap:.48rem;font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold);letter-spacing:.15em;}
+.bm-title .icon{width:1.15rem;height:1.15rem;}
 .bm-opt{display:flex;align-items:center;gap:.75rem;padding:.45rem .55rem;border:1px solid var(--border);cursor:pointer;transition:all .2s;}
 .bm-opt:hover:not(.disabled){border-color:var(--gold);background:rgba(201,168,76,.07);}
 .bm-opt.disabled{opacity:.35;cursor:not-allowed;}
-.bm-icon{font-size:1.25rem;width:1.5rem;text-align:center;}
+.bm-icon{display:inline-flex;align-items:center;justify-content:center;width:1.5rem;flex:0 0 1.5rem;color:var(--gold-l);}
+.bm-icon .icon{width:1.35rem;height:1.35rem;}
 .bm-name{font-family:'Cinzel',serif;font-size:.76rem;color:var(--gold);}
 .bm-desc{font-size:.7rem;color:var(--muted);}
 .bm-cost{font-size:.72rem;color:#e8c96a;margin-left:auto;white-space:nowrap;}
@@ -135,6 +156,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .legend{display:flex;gap:.55rem;padding:.32rem .9rem;background:rgba(0,0,0,.55);border-top:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
 .leg-item{display:flex;align-items:center;gap:4px;font-size:.67rem;color:var(--muted);}
 .leg-sw{width:10px;height:10px;border:1px solid rgba(255,255,255,.12);}
+.leg-icon{width:13px;height:13px;color:var(--gold-l);}
 </style>
 </head>
 <body>
@@ -171,7 +193,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- VICTOIRE -->
 <div id="screen-win" class="screen">
-  <p class="win-title">⚔️ VICTOIRE</p>
+  <p class="win-title"><span data-icon="laurel" class="icon-xl"></span> VICTOIRE</p>
   <p class="win-sub" id="win-msg"></p>
   <button class="btn-restart" onclick="restartGame()">Rejouer</button>
 </div>
@@ -179,35 +201,35 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <!-- JEU -->
 <div id="screen-game" class="screen">
   <div class="hud">
-    <div class="hud-player"><div class="hud-dot" id="hud-dot"></div><span id="hud-name">—</span></div>
+    <div class="hud-player"><div class="hud-dot" id="hud-dot"></div><span id="hud-bot-mark" class="hud-bot-mark"></span><span id="hud-name">—</span></div>
     <div class="hud-money">Trésor : <span id="hud-money">500</span> $</div>
     <div class="hud-income" id="hud-income"></div>
     <div class="hud-scouts" id="hud-scouts"></div>
-    <div class="hud-strategy" id="hud-strategy" title="Contrôlez les sanctuaires pour gagner de l’influence">🏛️ 0/5 · Influence 0/15</div>
+    <div class="hud-strategy" id="hud-strategy" title="Contrôlez les sanctuaires pour gagner de l’influence"><span data-icon="temple"></span><span id="hud-strategy-text">0/5 · Influence 0/15</span></div>
     <div class="hud-commands" id="hud-commands">Ordres 2/2</div>
     <div class="hud-turn" id="hud-turn">Tour 1</div>
-    <button class="btn-center" onclick="centerOnSpawn()" title="Recentrer sur mon camp">🏠</button>
-    <button class="btn-et" id="btn-end-turn" onclick="endTurn()">Fin de tour →</button>
+    <button class="btn-center" onclick="centerOnSpawn()" title="Recentrer sur mon camp"><span data-icon="home"></span></button>
+    <button class="btn-et" id="btn-end-turn" onclick="endTurn()">Fin de tour <span data-icon="arrow-right" class="icon-sm"></span></button>
   </div>
   <div class="map-area">
     <canvas id="map-canvas"></canvas>
 
     <!-- Bandeau mode ordre -->
-    <div id="explore-banner">⬤ Cliquez une case cible — <span id="order-banner-hint"></span> — Échap pour annuler<span id="order-preview"></span></div>
-    <div id="bot-banner"><span id="bot-banner-text">🤖 L’IA réfléchit…</span></div>
+    <div id="explore-banner"><span id="order-mode-icon" class="order-mode-icon"></span>Cliquez une case cible — <span id="order-banner-hint"></span> — Échap pour annuler<span id="order-preview"></span></div>
+    <div id="bot-banner"><span data-icon="bot" class="bot-banner-icon"></span><span id="bot-banner-text">L’IA réfléchit…</span></div>
 
     <!-- Panel action case -->
     <div id="action-panel">
-      <span class="a-info" id="a-info">—</span>
-      <button class="btn-act blue" id="btn-send-scout" onclick="enterOrderMode('explore')">🧭 Explorer →</button>
-      <button class="btn-act red" id="btn-attack" onclick="enterOrderMode('attack')">⚔️ Attaquer →</button>
-      <button class="btn-act" id="btn-build" onclick="openBuildModal()">Construire</button>
-      <button class="btn-act" onclick="clearSel()">✕</button>
+      <span id="a-icon" class="a-icon"></span><span class="a-info" id="a-info">—</span>
+      <button class="btn-act blue" id="btn-send-scout" onclick="enterOrderMode('explore')"><span data-icon="compass" class="btn-icon"></span>Explorer</button>
+      <button class="btn-act red" id="btn-attack" onclick="enterOrderMode('attack')"><span data-icon="swords" class="btn-icon"></span>Attaquer</button>
+      <button class="btn-act" id="btn-build" onclick="openBuildModal()"><span data-icon="hammer" class="btn-icon"></span>Construire</button>
+      <button class="btn-act" onclick="clearSel()" title="Désélectionner"><span data-icon="close" class="icon-sm"></span></button>
     </div>
 
     <!-- Modal construction -->
     <div id="build-modal">
-      <div class="bm-title">⚒ Construire</div>
+      <div class="bm-title"><span data-icon="hammer"></span>Construire</div>
       <div id="bm-options"></div>
       <button class="bm-close" onclick="closeBuildModal()">Annuler</button>
     </div>
@@ -218,7 +240,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
     <!-- Modal résultat de combat -->
     <div id="combat-modal">
-      <div class="bm-title" id="cm-title">⚔️ Résultat du combat</div>
+      <div class="bm-title" id="cm-title"><span data-icon="swords"></span>Résultat du combat</div>
       <div id="cm-body"></div>
       <button class="bm-close" onclick="document.getElementById('combat-modal').classList.remove('vis')">Fermer</button>
     </div>
@@ -231,7 +253,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="leg-item"><div class="leg-sw" style="background:#1e4d22"></div>Forêt</div>
     <div class="leg-item"><div class="leg-sw" style="background:rgba(255,255,255,.18);border:2px solid #fff"></div>Ta friche</div>
     <div class="leg-item"><div class="leg-sw" style="background:rgba(52,152,219,.25);border:1px solid #3498db"></div>Objectif éclaireur</div>
-    <div class="leg-item"><div class="leg-sw" style="background:rgba(201,168,76,.22);border:1px solid #e8c96a"></div>Sanctuaire stratégique</div>
+    <div class="leg-item"><span data-icon="temple" class="leg-icon"></span>Sanctuaire stratégique</div>
     <div class="leg-item"><div class="leg-sw" style="background:#080e08;border:1px solid #1a2e1a"></div>Brouillard</div>
   </div>
 </div>
@@ -250,31 +272,88 @@ const ZMIN=0.35, ZMAX=3.5;
 
 // Unités militaires
 const UNITS={
-  soldat:{name:'Soldat',    icon:'⚔️', power:50,  explore:1, cost:100},
-  archer:{name:'Archer',   icon:'🏹', power:50,  explore:1, cost:100},
-  mage:  {name:'Mage',     icon:'🔮', power:100, explore:1, cost:250},
-  catapulte:{name:'Catapulte',icon:'💣',power:250,explore:0, cost:500},
+  soldat:{name:'Soldat',    icon:'swords', power:50,  explore:1, cost:100},
+  archer:{name:'Archer',   icon:'bow', power:50,  explore:1, cost:100},
+  mage:  {name:'Mage',     icon:'crystal', power:100, explore:1, cost:250},
+  catapulte:{name:'Catapulte',icon:'catapult',power:250,explore:0, cost:500},
 };
 
 // Casernes (= bâtiment militaire, produit 1 unité)
 const BARRACKS={
-  caserne_soldat:  {name:'Caserne Soldat',   icon:'🏠', unit:'soldat',   cost:100, category:'military'},
-  caserne_archer:  {name:'Caserne Archer',   icon:'🏚️', unit:'archer',   cost:100, category:'military'},
-  caserne_mage:    {name:'Tour de Mage',     icon:'🗼', unit:'mage',     cost:250, category:'military'},
-  caserne_catapulte:{name:'Forge Catapulte', icon:'⚙️', unit:'catapulte',cost:500, category:'military'},
+  caserne_soldat:  {name:'Caserne Soldat',   icon:'barracks', unit:'soldat',   cost:100, category:'military'},
+  caserne_archer:  {name:'Caserne Archer',   icon:'range', unit:'archer',   cost:100, category:'military'},
+  caserne_mage:    {name:'Tour de Mage',     icon:'tower', unit:'mage',     cost:250, category:'military'},
+  caserne_catapulte:{name:'Forge Catapulte', icon:'forge', unit:'catapulte',cost:500, category:'military'},
 };
 
 // Bâtiments économiques
 const ECOBUILDINGS={
-  ble:      {name:'Champ de blé',       icon:'🌾', cost:100, income:50,  desc:'+50$/tour',   check:(x,y)=>true},
-  mine:     {name:"Mine d'or",          icon:'⛏️', cost:300, income:100, desc:'+100$/tour',  check:(x,y)=>true},
-  bucheron: {name:'Cabane de bûcheron', icon:'🪵', cost:500, income:250, desc:'+250$/tour — à 2 cases d\'une forêt', check:(x,y)=>isNearForest(x,y,2)},
+  ble:      {name:'Champ de blé',       icon:'wheat', cost:100, income:50,  desc:'+50$/tour',   check:(x,y)=>true},
+  mine:     {name:"Mine d'or",          icon:'pickaxe', cost:300, income:100, desc:'+100$/tour',  check:(x,y)=>true},
+  bucheron: {name:'Cabane de bûcheron', icon:'timber', cost:500, income:250, desc:'+250$/tour — à 2 cases d\'une forêt', check:(x,y)=>isNearForest(x,y,2)},
 };
 
 // Les fortins sacrifient un revenu ou une unité pour tenir un point clé.
 const DEFBUILDINGS={
-  fort:{name:'Fortin',icon:'🛡️',cost:220,defense:1.75,desc:'+75% de défense'}
+  fort:{name:'Fortin',icon:'shield',cost:220,defense:1.75,desc:'+75% de défense'}
 };
+
+
+const ICON_PATHS={
+  swords:['M4 3l11 11','M3 6l3-3 4 1-1 4-3 3','M14 13l-3 3','M5 18l4-4','M20 3L9 14','M18 3l3 1-1 3-4 4','M10 13l3 3','M15 19l-4-4'],
+  forest:['M12 2l-6 9h4l-4 6h12l-4-6h4z','M11 17v5h2v-5','M4 20h16'],
+  wave:['M3 7c3 0 3-2 6-2s3 2 6 2 3-2 6-2','M3 12c3 0 3-2 6-2s3 2 6 2 3-2 6-2','M3 17c3 0 3-2 6-2s3 2 6 2 3-2 6-2'],
+  field:['M3 20h18','M6 18l3-8','M11 18l2-13','M16 18l2-8','M5 13h4','M15 13h4'],
+  bow:['M6 3C18 6 18 18 6 21','M6 3v18','M8 12h12','M16 8l4 4-4 4'],
+  crystal:['M12 2l7 6-2 12H7L5 8z','M5 8h14','M9 8l3 12 3-12','M12 2v6'],
+  catapult:['M3 20h18','M6 20l3-9h6l3 9','M12 11V4','M12 5l6-3','M8 13l4-2 4 2','M17 3l2 2'],
+  barracks:['M3 10l9-7 9 7v11H3z','M8 21v-7h8v7','M3 10h18','M7 8h.1','M12 8h.1','M17 8h.1'],
+  range:['M4 4v16','M4 4c10 2 10 14 0 16','M7 12h13','M16 8l4 4-4 4','M14 5a3 3 0 1 1 0 6'],
+  tower:['M5 21V8l3-3h8l3 3v13','M4 8h16','M8 5V3h3v2','M13 5V3h3v2','M9 21v-6h6v6','M11 10h2'],
+  forge:['M3 17h18l-2 4H5z','M6 17l2-4h8l2 4','M14 4l6 6','M12 6l4-4 4 4','M7 13l-2-3'],
+  wheat:['M12 22V3','M12 8C8 8 7 5 7 3c4 0 5 2 5 5','M12 13c4 0 5-3 5-5-4 0-5 2-5 5','M12 17c-4 0-5-3-5-5 4 0 5 2 5 5','M12 19c4 0 5-3 5-5'],
+  pickaxe:['M3 6l8-3 4 2 6-2','M7 5l12 15','M17 18l2 3'],
+  timber:['M5 6h13a3 3 0 0 1 0 6H5a3 3 0 0 1 0-6z','M5 6v6','M18 6v6','M7 8h.1','M16 10h.1','M4 16h13a3 3 0 0 1 0 6H4a3 3 0 0 1 0-6z','M4 16v6'],
+  shield:['M12 2l8 3v6c0 5-3 9-8 11-5-2-8-6-8-11V5z','M8 12l3 3 5-6'],
+  temple:['M2 9l10-6 10 6z','M4 10h16','M5 10v9','M9 10v9','M15 10v9','M19 10v9','M3 21h18','M5 19h14'],
+  compass:['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z','M15.5 8.5l-2 5-5 2 2-5z','M12 4v1','M20 12h-1','M12 20v-1','M4 12h1'],
+  home:['M3 11l9-8 9 8','M5 10v11h14V10','M9 21v-7h6v7','M8 9h.1'],
+  hammer:['M4 5l5-3 5 5-3 3z','M11 9l9 10-3 3L7 12','M4 6l-2 2 4 4 2-2'],
+  laurel:['M12 19V10','M12 12C8 12 5 9 5 5c4 0 7 3 7 7','M12 16c-4 0-7-3-7-7','M12 12c4 0 7-3 7-7-4 0-7 3-7 7','M12 16c4 0 7-3 7-7','M8 20h8','M9 6l3 4','M15 6l-3 4'],
+  bot:['M7 7V4h10v3','M4 8h16v11H4z','M8 12v1','M16 12v1','M9 16h6','M12 4V2','M2 11v5','M22 11v5','M8 19v2','M16 19v2'],
+  dice:['M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z','M8 8h.1','M16 8h.1','M12 12h.1','M8 16h.1','M16 16h.1'],
+  close:['M5 5l14 14','M19 5L5 19'],
+  hourglass:['M5 3h14','M5 21h14','M7 3c0 5 2 6 5 9-3 3-5 4-5 9','M17 3c0 5-2 6-5 9 3 3 5 4 5 9','M9 7h6','M9 17h6'],
+  flag:['M6 21V3','M6 4c5-3 8 3 13 0v10c-5 3-8-3-13 0'],
+  check:['M4 12l5 5L20 6'],
+  'arrow-right':['M3 12h17','M14 5l7 7-7 7'],
+  coin:['M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z','M15 8c-.8-1-1.8-1.5-3-1.5-1.7 0-3 .9-3 2.3s1.3 2.1 3 2.4 3 1 3 2.4-1.3 2.4-3 2.4c-1.2 0-2.3-.5-3-1.5','M12 5v14']
+};
+function iconSvg(name,className='icon'){
+  const paths=ICON_PATHS[name]||ICON_PATHS.compass;
+  return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">${paths.map(d=>`<path d="${d}"/>`).join('')}</g></svg>`;
+}
+function hydrateIcons(){
+  document.querySelectorAll('[data-icon]').forEach(slot=>{
+    const name=slot.getAttribute('data-icon');
+    const cls=('icon '+(slot.getAttribute('class')||'')).trim();
+    slot.outerHTML=iconSvg(name,cls);
+  });
+}
+const ICON_CANVAS_PATHS=Object.create(null);
+function drawIcon(ctx,name,cx,cy,size,color){
+  const paths=ICON_PATHS[name]||ICON_PATHS.compass;
+  if(!ICON_CANVAS_PATHS[name]) ICON_CANVAS_PATHS[name]=paths.map(d=>new Path2D(d));
+  ctx.save();
+  ctx.translate(cx-size/2,cy-size/2);
+  ctx.scale(size/24,size/24);
+  ctx.strokeStyle=color;
+  ctx.lineWidth=1.65;
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  ICON_CANVAS_PATHS[name].forEach(path=>ctx.stroke(path));
+  ctx.restore();
+}
 
 const BOT_LEVELS={
   easy:{label:'Facile',help:'Expansion simple, peu d’ordres et davantage d’erreurs.',noise:.42,orderLimit:1,econTarget:120,reserve:0,maxArmy:2,minAttack:.72,aggression:.42,fortifyRange:1},
@@ -337,7 +416,7 @@ function renderMenu(){
     const level=BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal;
     d.innerHTML=`
       <div class="p-title"><span class="cdot" style="background:${p.color}"></span>Participant ${i+1}${p.isBot?' · IA':''}</div>
-      ${players.length>1?`<button class="btn-rm" onclick="removePlayer(${i})">✕</button>`:''}
+      ${players.length>1?`<button class="btn-rm" onclick="removePlayer(${i})" aria-label="Retirer">${iconSvg('close','icon icon-sm')}</button>`:''}
       <div class="frow"><label>Contrôle</label>
         <select onchange="setPlayerType(${i},this.value)">
           <option value="human" ${!p.isBot?'selected':''}>Joueur humain</option>
@@ -354,7 +433,7 @@ function renderMenu(){
         </select><small class="bot-help">${level.help}</small></div>`:`<div class="frow"><label>Mot de passe</label>
         <div class="prow">
           <input type="password" value="${p.password}" placeholder="••••" oninput="players[${i}].password=this.value">
-          <button class="btn-gen" onclick="genPwd(${i})">🎲 Générer</button>
+          <button class="btn-gen" onclick="genPwd(${i})">${iconSvg('dice','icon btn-icon')}Générer</button>
         </div></div>`}`;
     el.appendChild(d);
   });
@@ -760,7 +839,7 @@ function resolveAttacks(pi){
       logs.push(result.log);
       if(result.win){
         dest.owner=pi;
-        logs.push(dest.building ? '🏗️ Bâtiment capturé en ('+nx+','+ny+') !' : '✅ Case ('+nx+','+ny+') conquise !');
+        logs.push(dest.building ? 'Bâtiment capturé en ('+nx+','+ny+') !' : 'Case ('+nx+','+ny+') conquise !');
         checkElimination(result.defenderPi);
       }
       // Toujours nettoyer après un combat, victoire ou défaite
@@ -862,13 +941,13 @@ function resolveCombat(attackerPi, attackerUnit, dx, dy){
 
   let log='';
   if(win){
-    log='⚔️ '+players[attackerPi].name+' attaque ('+dx+','+dy+') : VICTOIRE ! '
+    log=players[attackerPi].name+' attaque ('+dx+','+dy+') : VICTOIRE ! '
        +'(ATK '+Math.round(atkPow)+' vs DEF '+Math.round(defPow)+')'
        +' — pertes attaquant '+winnerLoss+'%';
     // Éliminer l'unité défenderesse
     if(defTile.unit) defTile.unit=null;
   } else {
-    log='⚔️ '+players[attackerPi].name+' attaque ('+dx+','+dy+') : DÉFAITE. '
+    log=players[attackerPi].name+' attaque ('+dx+','+dy+') : DÉFAITE. '
        +'(ATK '+Math.round(atkPow)+' vs DEF '+Math.round(defPow)+')';
   }
 
@@ -945,7 +1024,7 @@ function showLogin(){
     showScreen('screen-game');
     document.getElementById('screen-game').classList.add('bot-active');
     document.getElementById('btn-end-turn').disabled=true;
-    document.getElementById('bot-banner-text').textContent='🤖 '+p.name+' ('+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label+') prépare son tour…';
+    document.getElementById('bot-banner-text').textContent=p.name+' ('+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label+') prépare son tour…';
     document.getElementById('bot-banner').classList.add('vis');
     setTimeout(()=>{if(curP===botPi&&players[botPi]===p)startTurn();},350);
     return;
@@ -988,7 +1067,8 @@ function startTurn(){
   botThinking=!!p.isBot;
 
   // HUD
-  document.getElementById('hud-name').textContent=p.isBot?'🤖 '+p.name+' · '+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label:p.name;
+  document.getElementById('hud-name').textContent=p.isBot?p.name+' · '+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label:p.name;
+  document.getElementById('hud-bot-mark').innerHTML=p.isBot?iconSvg('bot','icon') : '';
   document.getElementById('hud-dot').style.background=p.color;
   document.getElementById('hud-money').textContent=p.money;
   document.getElementById('hud-turn').textContent='Tour '+turnN;
@@ -999,7 +1079,7 @@ function startTurn(){
   updateCommandsHud();
   document.getElementById('btn-end-turn').disabled=botThinking;
   document.getElementById('screen-game').classList.toggle('bot-active',botThinking);
-  document.getElementById('bot-banner-text').textContent='🤖 '+p.name+' ('+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label+') réfléchit…';
+  document.getElementById('bot-banner-text').textContent=p.name+' ('+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label+') réfléchit…';
   document.getElementById('bot-banner').classList.toggle('vis',botThinking);
 
   selTile=null; orderMode=null; selectedUnits.clear();
@@ -1012,7 +1092,7 @@ function startTurn(){
 
   // Popups
   const msgs=[];
-  if(revealed>0) msgs.push('🧭 '+revealed+' case'+(revealed>1?'s':'')+' explorée'+(revealed>1?'s':''));
+  if(revealed>0) msgs.push(revealed+' case'+(revealed>1?'s':'')+' explorée'+(revealed>1?'s':''));
   if(gained>0) msgs.push('+'+gained+' $ de revenus');
   if(influenceGained>0) msgs.push('+'+influenceGained+' influence des sanctuaires');
   if(msgs.length) showPopup('income-popup', msgs.join(' · '), 2800);
@@ -1071,7 +1151,7 @@ function updateStrategyHud(){
   const sites=countControlledSites(curP);
   const p=players[curP];
   const el=document.getElementById('hud-strategy');
-  el.textContent='🏛️ '+sites+'/'+SITE_COUNT+' · Influence '+(p.influence||0)+'/'+INFLUENCE_TO_WIN;
+  document.getElementById('hud-strategy-text').textContent=sites+'/'+SITE_COUNT+' · Influence '+(p.influence||0)+'/'+INFLUENCE_TO_WIN;
   el.title=sites+' sanctuaire'+(sites===1?'':'s')+' contrôlé'+(sites===1?'':'s')+' : +'+sites+' influence, +'+(sites*SITE_INCOME)+' $ et +'+sites+' ordre(s) par tour.';
 }
 function updateCommandsHud(){
@@ -1087,9 +1167,8 @@ function updateScoutsHud(){
   const parts=[];
   if(avail>0) parts.push(avail+' dispo');
   if(pendingEx>0) parts.push(pendingEx+' en exploration');
-  if(pendingAtk>0) parts.push(pendingAtk+' en marche ⚔️');
-  if(parts.length) el.textContent='🧭 '+parts.join(' · ');
-  else el.textContent='';
+  if(pendingAtk>0) parts.push(pendingAtk+' en marche');
+  el.innerHTML=parts.length?iconSvg('compass','icon')+parts.join(' · '):'';
 }
 
 // ══════════════════════════════════════════════════
@@ -1351,7 +1430,7 @@ function openBuildModal(){
     let reason=!canAfford?`Manque ${b.cost-p.money}$`:(!condOk?'Trop loin d\'une forêt':'');
     const div=document.createElement('div');
     div.className='bm-opt'+(disabled?' disabled':'');
-    div.innerHTML=`<span class="bm-icon">${b.icon}</span>
+    div.innerHTML=`<span class="bm-icon">${iconSvg(b.icon,'icon')}</span>
       <div><div class="bm-name">${b.name}</div>
       <div class="bm-desc">${b.desc}${reason?` — <span style="color:#e74c3c">${reason}</span>`:''}</div></div>
       <span class="bm-cost">${b.cost} $</span>`;
@@ -1368,7 +1447,7 @@ function openBuildModal(){
     const canAfford=p.money>=b.cost;
     const div=document.createElement('div');
     div.className='bm-opt'+(!canAfford?' disabled':'');
-    div.innerHTML=`<span class="bm-icon">${b.icon}</span><div><div class="bm-name">${b.name}</div><div class="bm-desc">${b.desc} — sans revenu${!canAfford?` — <span style="color:#e74c3c">Manque ${b.cost-p.money}$</span>`:''}</div></div><span class="bm-cost">${b.cost} $</span>`;
+    div.innerHTML=`<span class="bm-icon">${iconSvg(b.icon,'icon')}</span><div><div class="bm-name">${b.name}</div><div class="bm-desc">${b.desc} — sans revenu${!canAfford?` — <span style="color:#e74c3c">Manque ${b.cost-p.money}$</span>`:''}</div></div><span class="bm-cost">${b.cost} $</span>`;
     if(canAfford) div.onclick=()=>doBuild(key,'defense');
     container.appendChild(div);
   });
@@ -1385,9 +1464,9 @@ function openBuildModal(){
     const div=document.createElement('div');
     div.className='bm-opt'+(!canAfford?' disabled':'');
     const exploreStr=u.explore>0?`explore ${u.explore}case/tour`:'ne peut pas explorer';
-    div.innerHTML=`<span class="bm-icon">${b.icon}</span>
+    div.innerHTML=`<span class="bm-icon">${iconSvg(b.icon,'icon')}</span>
       <div><div class="bm-name">${b.name}</div>
-      <div class="bm-desc">${u.icon} ${u.name} — ${u.power} force — ${exploreStr}${!canAfford?` — <span style="color:#e74c3c">Manque ${b.cost-p.money}$</span>`:''}</div></div>
+      <div class="bm-desc">${iconSvg(u.icon,'icon-sm')} ${u.name} — ${u.power} force — ${exploreStr}${!canAfford?` — <span style="color:#e74c3c">Manque ${b.cost-p.money}$</span>`:''}</div></div>
       <span class="bm-cost">${b.cost} $</span>`;
     if(canAfford) div.onclick=()=>doBuild(key,'military');
     container.appendChild(div);
@@ -1450,9 +1529,11 @@ function updateActionPanel(x,y){
   const types={mer:'Mer',plaine:'Plaine',foret:'Forêt'};
   const ownerStr=t.owner===null?'Neutre':t.owner===curP?'Ta case':players[t.owner].name;
   const bDef=t.building?(ECOBUILDINGS[t.building]||BARRACKS[t.building]||DEFBUILDINGS[t.building]):null;
-  const bStr=bDef?` [${bDef.icon} ${bDef.name}]`:'';
-  const uStr=t.unit?` ${UNITS[t.unit].icon} ${UNITS[t.unit].name} (${UNITS[t.unit].power} force)`:'';
-  const siteStr=t.site?` · 🏛️ Sanctuaire (+${SITE_INCOME}$/tour, +1 influence, +1 ordre)`:'';
+  const bStr=bDef?` [${bDef.name}]`:'';
+  const uStr=t.unit?` ${UNITS[t.unit].name} (${UNITS[t.unit].power} force)`:'';
+  const tileIcon=t.site?'temple':t.unit?UNITS[t.unit].icon:t.building?bDef.icon:(t.type==='foret'?'forest':t.type==='mer'?'wave':'field');
+  document.getElementById('a-icon').innerHTML=iconSvg(tileIcon,'icon');
+  const siteStr=t.site?` · Sanctuaire (+${SITE_INCOME}$/tour, +1 influence, +1 ordre)`:'';
   const selCount=selectedUnits.size;
   const selLabel=selCount>0?` · ${selCount} troupe${selCount>1?'s':''} sélectionnée${selCount>1?'s':''}`:''
   const info=`${types[t.type]} — ${ownerStr}${bStr}${uStr}${siteStr}${selLabel}`;
@@ -1471,11 +1552,11 @@ function updateActionPanel(x,y){
   });
   const btnScout=document.getElementById('btn-send-scout');
   btnScout.disabled=explorers.length===0||commandsRemaining<=0;
-  btnScout.textContent=explorers.length>0?'🧭 Explorer ('+explorers.length+')':'🧭 Explorer';
+  btnScout.innerHTML=iconSvg('compass','icon btn-icon')+'Explorer'+(explorers.length>0?' ('+explorers.length+')':'');
 
   const btnAtk=document.getElementById('btn-attack');
   btnAtk.disabled=attackers.length===0||commandsRemaining<=0;
-  btnAtk.textContent=attackers.length>0?'⚔️ Attaquer ('+attackers.length+')':'⚔️ Attaquer';
+  btnAtk.innerHTML=iconSvg('swords','icon btn-icon')+'Attaquer'+(attackers.length>0?' ('+attackers.length+')':'');
 
   const canBuild=t.owner===curP&&!t.building&&t.type!=='mer';
   document.getElementById('btn-build').disabled=!canBuild;
@@ -1504,6 +1585,7 @@ function enterOrderMode(mode){
   const hint=mode==='explore'
     ? eligible.length+' éclaireur'+(eligible.length>1?'s':'')+' — '+MAX_TILES_PER_TURN+' cases max'
     : eligible.length+' troupe'+(eligible.length>1?'s':'')+' — visez une cible';
+  document.getElementById('order-mode-icon').innerHTML=iconSvg(mode==='explore'?'compass':'swords','icon');
   document.getElementById('order-banner-hint').textContent='Ordres restants : '+commandsRemaining+' · '+hint;
   document.getElementById('order-preview').textContent='';
   document.getElementById('explore-banner').classList.add('vis');
@@ -1694,33 +1776,24 @@ function draw(){
       if(t.site){
         ctx.strokeStyle='#e8c96a'; ctx.lineWidth=1.6;
         ctx.strokeRect(px+2,py+2,TS-4,TS-4);
-        ctx.fillStyle='#f4d879'; ctx.font=(TS*0.25)+'px serif';
-        ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('✦',px+3,py+2);
+        drawIcon(ctx,'temple',px+TS*.78,py+TS*.22,TS*.34,'#f4d879');
       }
 
       const bDef=t.building?(ECOBUILDINGS[t.building]||BARRACKS[t.building]||DEFBUILDINGS[t.building]):null;
-      if(bDef){
-        const fs=TS*0.48;
-        ctx.font=`${fs}px serif`;
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(bDef.icon, px+TS/2, py+TS/2+1);
-      }
+      if(bDef) drawIcon(ctx,bDef.icon,px+TS*.5,py+TS*.5,TS*.58,'#f4d879');
 
       if(t.unit && UNITS[t.unit]){
         const u=UNITS[t.unit];
-        ctx.font=(TS*0.32)+'px serif';
-        ctx.textAlign='right'; ctx.textBaseline='bottom';
-        ctx.fillText(u.icon, px+TS-2, py+TS-1);
-        if(t.exploreTarget){
-          ctx.font=(TS*0.22)+'px serif';
-          ctx.textAlign='left'; ctx.textBaseline='top';
-          ctx.fillText('🕐', px+2, py+2);
+        const unitX=px+TS*.74, unitY=py+TS*.74;
+        if(t.owner!==null){
+          const unitColor=players[t.owner].color;
+          ctx.fillStyle=unitColor;
+          ctx.beginPath(); ctx.arc(unitX,unitY,TS*.22,0,Math.PI*2); ctx.fill();
+          ctx.strokeStyle='rgba(0,0,0,.6)'; ctx.lineWidth=1; ctx.stroke();
         }
-        if(t.attackTarget){
-          ctx.font=(TS*0.22)+'px serif';
-          ctx.textAlign='left'; ctx.textBaseline='top';
-          ctx.fillText('⚔️', px+2, py+2);
-        }
+        drawIcon(ctx,u.icon,unitX,unitY,TS*.36,'#fff6d7');
+        if(t.exploreTarget) drawIcon(ctx,'hourglass',px+TS*.2,py+TS*.22,TS*.28,'#83d4ff');
+        if(t.attackTarget) drawIcon(ctx,'swords',px+TS*.2,py+TS*.22,TS*.3,'#ff8b78');
       }
 
       // Guard ajouté : on ne push que si l'unité est valide
@@ -1754,9 +1827,7 @@ function draw(){
     ctx.fillStyle='rgba('+r+','+g+','+b+',0.7)';
     ctx.beginPath(); ctx.arc(ppx+TS/2,ppy+TS/2,TS*0.22,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.font=(TS*0.28)+'px serif';
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(UNITS[unit].icon, ppx+TS/2, ppy+TS/2+1);
+    drawIcon(ctx,UNITS[unit].icon,ppx+TS/2,ppy+TS/2,TS*.38,'#fff6d7');
   });
 
   ctx.restore();
@@ -1864,6 +1935,7 @@ function showPopup(id,msg,duration){
   setTimeout(()=>el.classList.remove('vis'),duration);
 }
 
+hydrateIcons();
 addPlayer(); addPlayer();
 </script>
 </body>

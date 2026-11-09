@@ -50,6 +50,31 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn-et:disabled{opacity:.45;cursor:wait;}
 .menu-err{color:#c0392b;font-size:.8rem;text-align:center;margin-top:.6rem;min-height:1.1em;}
 
+/* MULTIJOUEUR EN LIGNE */
+.online-modal{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.82);}
+.online-modal.vis{display:flex;}
+.online-box{width:min(560px,96vw);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--gold);padding:1.35rem 1.5rem;box-shadow:0 18px 70px rgba(0,0,0,.65);}
+.online-box h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;letter-spacing:.12em;margin-bottom:.55rem;}
+.online-help{color:var(--muted);font-size:.84rem;line-height:1.45;margin-bottom:.85rem;}
+.online-actions{display:flex;gap:.55rem;flex-wrap:wrap;margin:.75rem 0;}
+.online-actions button{flex:1;min-width:145px;}
+.online-divider{display:flex;align-items:center;gap:.65rem;color:var(--muted);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;margin:.85rem 0;}
+.online-divider:before,.online-divider:after{content:'';height:1px;flex:1;background:var(--border);}
+.online-status{min-height:1.25rem;color:#9bc8a3;font-size:.82rem;margin:.45rem 0;line-height:1.35;}
+.online-status.error{color:#e98978;}
+.online-code{font-family:'Cinzel',serif;font-size:1.15rem;letter-spacing:.25em;color:var(--gold-l);padding:.25rem .5rem;border:1px dashed var(--border);display:inline-block;}
+.online-player-list{display:flex;flex-direction:column;gap:.35rem;margin:.7rem 0;}
+.online-player{display:flex;align-items:center;gap:.5rem;padding:.42rem .55rem;background:rgba(201,168,76,.05);border:1px solid var(--border);font-size:.85rem;}
+.online-player .hud-dot{width:9px;height:9px;border-radius:50%;}
+.online-note{font-size:.72rem;color:var(--muted);line-height:1.4;margin-top:.65rem;}
+.online-close-row{display:flex;justify-content:flex-end;gap:.5rem;margin-top:.8rem;}
+#online-lobby{display:none;}
+#online-lobby.vis{display:block;}
+#online-turn-cover{display:none;position:absolute;inset:0;z-index:28;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.48);pointer-events:none;text-align:center;}
+#online-turn-cover span{font-family:'Cinzel',serif;color:var(--gold-l);font-size:.9rem;letter-spacing:.1em;background:rgba(8,16,8,.88);border:1px solid var(--border);padding:.75rem 1.2rem;}
+#screen-game.online-waiting #online-turn-cover{display:flex;}
+#screen-game.online-waiting #map-canvas,#screen-game.online-waiting #action-panel{pointer-events:none;}
+
 /* LOGIN */
 #screen-login{flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%,#1a1a0e,#0d1b0e);}
 .login-box{background:var(--panel);border:1px solid var(--border);padding:2.2rem;width:min(340px,92vw);text-align:center;}
@@ -171,9 +196,40 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="menu-actions">
       <button class="btn-add" onclick="addPlayer(false)">+ Joueur</button>
       <button class="btn-add" onclick="addPlayer(true)">+ Bot IA</button>
+      <button class="btn-add" onclick="openOnlineModal()">Jouer en ligne</button>
       <button class="btn-start" onclick="startGame()">Commencer</button>
     </div>
     <p class="menu-err" id="menu-err"></p>
+  </div>
+</div>
+
+<!-- SALLES EN LIGNE : utiliser la clé publique anon/publishable, jamais service_role -->
+<div class="online-modal" id="online-modal" role="dialog" aria-modal="true" aria-labelledby="online-title">
+  <div class="online-box">
+    <div id="online-setup">
+      <h2 id="online-title">Partie en ligne</h2>
+      <p class="online-help">Entre les informations publiques de ton projet Supabase, puis crée une salle ou rejoins-en une avec son code. Elles restent enregistrées uniquement dans ce navigateur.</p>
+      <div class="frow"><label for="sb-url">URL du projet Supabase</label><input id="sb-url" type="url" placeholder="https://xxxx.supabase.co" autocomplete="url"></div>
+      <div class="frow"><label for="sb-anon">Clé publique anon / publishable</label><input id="sb-anon" type="password" placeholder="sb_publishable_… ou anon key" autocomplete="off"></div>
+      <div class="frow"><label for="online-name">Ton pseudo</label><input id="online-name" type="text" maxlength="24" placeholder="Capitaine"></div>
+      <div class="online-actions"><button class="btn-start" onclick="createOnlineRoom()">Créer une salle</button></div>
+      <div class="online-divider">ou rejoindre</div>
+      <div class="prow"><input id="online-join-code" type="text" maxlength="10" placeholder="Code de salle" autocomplete="off"><button class="btn-add" onclick="joinOnlineRoom()">Rejoindre</button></div>
+      <p id="online-status" class="online-status" role="status"></p>
+      <p class="online-note">Supabase Auth doit autoriser les connexions anonymes. N’entre jamais la clé <code>service_role</code> dans cette page.</p>
+      <div class="online-close-row"><button class="bm-close" onclick="closeOnlineModal()">Fermer</button></div>
+    </div>
+    <div id="online-lobby">
+      <h2 id="online-lobby-title">Salle en attente</h2>
+      <p class="online-help">Partage ce code avec tes amis. Le créateur doit garder sa page ouverte pendant la partie.</p>
+      <div class="online-code" id="online-room-code"></div>
+      <button class="btn-add" onclick="copyOnlineCode()">Copier le code</button>
+      <div id="online-player-list" class="online-player-list"></div>
+      <p id="online-lobby-status" class="online-status" role="status"></p>
+      <div id="online-host-controls" class="online-actions"><button id="online-start-button" class="btn-start" onclick="startOnlineGame()" disabled>Démarrer la partie</button></div>
+      <div class="online-close-row"><button class="bm-close" onclick="leaveOnlineRoom()">Quitter la salle</button></div>
+      <p class="online-note">Version de test entre amis : le navigateur du créateur fait tourner la partie et doit rester connecté. Pour une partie compétitive ou persistante, il faudra déplacer l’arbitrage dans une fonction serveur.</p>
+    </div>
   </div>
 </div>
 
@@ -213,6 +269,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </div>
   <div class="map-area">
     <canvas id="map-canvas"></canvas>
+    <div id="online-turn-cover"><span id="online-turn-cover-text">En attente…</span></div>
 
     <!-- Bandeau mode ordre -->
     <div id="explore-banner"><span id="order-mode-icon" class="order-mode-icon"></span>Cliquez une case cible — <span id="order-banner-hint"></span> — Échap pour annuler<span id="order-preview"></span></div>
@@ -258,6 +315,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script>
 // ══════════════════════════════════════════════════
 //  CONSTANTES
@@ -368,6 +426,8 @@ const BOT_SCOUT_ANCHORS=[{x:8,y:8},{x:27,y:8},{x:27,y:19},{x:8,y:19},{x:18,y:13}
 // ══════════════════════════════════════════════════
 let players=[];
 let curP=0, turnN=1;
+let onlineGame=null;
+let onlineClient=null;
 let commandsRemaining=0, currentCommandLimit=BASE_COMMANDS;
 let botThinking=false;
 let map=[];
@@ -446,11 +506,12 @@ function genPwd(i){
 }
 function startGame(){
   const err=document.getElementById('menu-err');
+  const onlineHost=!!(onlineGame&&onlineGame.isHost);
   if(players.length<2){err.textContent='Il faut au moins 2 participants.';return;}
-  if(!players.some(p=>!p.isBot)){err.textContent='Il faut au moins un joueur humain.';return;}
+  if(!onlineHost&&!players.some(p=>!p.isBot)){err.textContent='Il faut au moins un joueur humain.';return;}
   for(const p of players){
     if(!p.name.trim()){err.textContent='Chaque participant doit avoir un pseudo.';return;}
-    if(!p.isBot&&!p.password){err.textContent='Chaque joueur humain doit avoir un mot de passe.';return;}
+    if(!onlineHost&&!p.isBot&&!p.password){err.textContent='Chaque joueur humain doit avoir un mot de passe.';return;}
   }
   err.textContent='';
   curP=0; turnN=1; commandsRemaining=0; currentCommandLimit=BASE_COMMANDS; botThinking=false;
@@ -459,9 +520,11 @@ function startGame(){
   buildMap();
   assignSpawns();
   placeStrategicSites();
-  showLogin();
+  if(onlineHost){onlineGame.started=true;startTurn();}
+  else showLogin();
 }
 function restartGame(){
+  if(onlineGame){void leaveOnlineRoom();return;}
   players=[];curP=0;turnN=1;map=[];selTile=null;visibleTiles.clear();
   orderMode=null; selectedUnits.clear();commandsRemaining=0;currentCommandLimit=BASE_COMMANDS;botThinking=false;
   addPlayer();addPlayer();
@@ -990,12 +1053,14 @@ function checkVictory(){
     const p=players[influenceWinner];
     document.getElementById('win-msg').textContent=p.name+' remporte la victoire par influence ('+p.influence+'/'+INFLUENCE_TO_WIN+') !';
     showScreen('screen-win');
+    if(onlineGame&&onlineGame.isHost){onlineGame.gameOver={winner:influenceWinner,message:document.getElementById('win-msg').textContent};void publishOnlineViews();}
     return true;
   }
   const alive=players.filter((_,i)=>hasTerritory(i));
   if(alive.length===1){
     document.getElementById('win-msg').textContent=alive[0].name+' a conquis le monde !';
     showScreen('screen-win');
+    if(onlineGame&&onlineGame.isHost){onlineGame.gameOver={winner:players.indexOf(alive[0]),message:document.getElementById('win-msg').textContent};void publishOnlineViews();}
     return true;
   }
   return false;
@@ -1079,6 +1144,7 @@ function startTurn(){
   updateCommandsHud();
   document.getElementById('btn-end-turn').disabled=botThinking;
   document.getElementById('screen-game').classList.toggle('bot-active',botThinking);
+  if(onlineGame&&onlineGame.isHost&&onlineGame.started)updateOnlineTurnLock(curP);
   document.getElementById('bot-banner-text').textContent=p.name+' ('+(BOT_LEVELS[p.botLevel]||BOT_LEVELS.normal).label+') réfléchit…';
   document.getElementById('bot-banner').classList.toggle('vis',botThinking);
 
@@ -1119,11 +1185,19 @@ function startTurn(){
     fitCanvas();
     calcVisible(curP);
     centerOnSpawn(); draw();
+    if(onlineGame&&onlineGame.isHost&&onlineGame.started)void publishOnlineViews();
     if(p.isBot) setTimeout(()=>runBotTurn(activePi),450);
   },30);
 }
 
 function endTurn(fromBot=false){
+  if(onlineGame&&!onlineGame.isHost){
+    if(onlineGame.activePlayer!==onlineGame.playerIndex)return;
+    document.getElementById('btn-end-turn').disabled=true;
+    void sendOnlineAction({type:'end-turn'});
+    return;
+  }
+  if(onlineGame&&onlineGame.isHost&&curP!==onlineGame.playerIndex&&!onlineGame.processingRemote)return;
   if(botThinking&&!fromBot)return;
   botThinking=false;
   document.getElementById('bot-banner').classList.remove('vis');
@@ -1137,8 +1211,9 @@ function endTurn(fromBot=false){
   closeBuildModal();
   curP=(curP+1)%players.length;
   if(curP===0) turnN++;
-  if(checkVictory()) return;
-  showLogin();
+  if(checkVictory()){if(onlineGame&&onlineGame.isHost)publishOnlineViews();return;}
+  if(onlineGame&&onlineGame.isHost)startTurn();
+  else showLogin();
 }
 
 function countControlledSites(pi){
@@ -1481,6 +1556,14 @@ function closeBuildModal(){
 }
 
 function doBuild(key, category){
+  if(onlineGame&&!onlineGame.isHost){
+    if(onlineGame.activePlayer!==onlineGame.playerIndex||!buildTarget)return;
+    const{x,y}=buildTarget;
+    closeBuildModal();
+    void sendOnlineAction({type:'build',key,category,x,y});
+    showPopup('scout-popup','Demande de construction envoyée…',1800);
+    return;
+  }
   if(!buildTarget) return;
   const{x,y}=buildTarget;
   const t=map[x][y];
@@ -1511,6 +1594,7 @@ function doBuild(key, category){
   updateScoutsHud();
   closeBuildModal();
   clearSel();
+  if(onlineGame&&onlineGame.isHost)void publishOnlineViews();
 }
 
 // ══════════════════════════════════════════════════
@@ -1603,6 +1687,19 @@ function cancelOrderMode(){
 
 function commitOrderTarget(tx,ty){
   if(!orderMode)return;
+  if(onlineGame&&!onlineGame.isHost){
+    if(onlineGame.activePlayer!==onlineGame.playerIndex){cancelOrderMode();return;}
+    const units=[...selectedUnits];
+    const mode=orderMode;
+    selectedUnits.clear();orderMode=null;
+    document.getElementById('explore-banner').classList.remove('vis');
+    document.getElementById('map-canvas').classList.remove('explore-mode');
+    document.getElementById('order-preview').textContent='';
+    void sendOnlineAction({type:'order',mode,units,x:tx,y:ty});
+    showPopup('scout-popup','Ordre envoyé au joueur hôte…',1800);
+    draw();
+    return;
+  }
   if(commandsRemaining<=0){showPopup('scout-popup','Plus aucun ordre disponible ce tour.',1800);cancelOrderMode();return;}
   if(map[tx][ty].type==='mer'){showPopup('scout-popup','Impossible : case de mer.',1500);cancelOrderMode();return;}
   if(orderMode==='explore'){
@@ -1638,6 +1735,7 @@ function commitOrderTarget(tx,ty){
     showPopup('scout-popup',sent+' troupe'+(sent>1?'s':'')+' en marche vers ('+tx+','+ty+').',2200);
   }
   cancelOrderMode();
+  if(onlineGame&&onlineGame.isHost)void publishOnlineViews();
 }
 
 // ══════════════════════════════════════════════════
@@ -1933,6 +2031,440 @@ function showPopup(id,msg,duration){
   const el=document.getElementById(id);
   el.textContent=msg; el.classList.add('vis');
   setTimeout(()=>el.classList.remove('vis'),duration);
+}
+
+// ══════════════════════════════════════════════════
+//  MULTIJOUEUR SUPABASE REALTIME (prototype hôte-arbitre)
+// ══════════════════════════════════════════════════
+let onlineConfigSignature='';
+const ONLINE_ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function onlineRandomId(){
+  if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();
+  const bytes=new Uint8Array(16);
+  if(window.crypto&&crypto.getRandomValues)crypto.getRandomValues(bytes);
+  else for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256);
+  bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+  const h=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
+  return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+}
+function onlineRandomCode(){
+  if(!window.crypto||!crypto.getRandomValues)throw new Error('Le multijoueur nécessite un contexte sécurisé HTTPS (ou localhost en développement).');
+  const bytes=new Uint8Array(10);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map(b=>ONLINE_ALPHABET[b%ONLINE_ALPHABET.length]).join('');
+}
+function onlineName(){return (document.getElementById('online-name').value||'').trim().slice(0,24);}
+function onlineIsServiceKey(key){
+  if(/^sb_secret_/i.test(key))return true;
+  const encoded=key.split('.')[1];
+  if(!encoded)return false;
+  try{
+    const base64=encoded.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(encoded.length/4)*4,'=');
+    return JSON.parse(atob(base64)).role==='service_role';
+  }catch(_e){return false;}
+}
+function onlineTopic(room,kind,id=''){
+  return 'cq_'+room+'_'+kind+(id?'_'+id:'');
+}
+function setOnlineStatus(message,isError=false){
+  const el=document.getElementById('online-status');
+  if(!el)return;
+  el.textContent=message;el.classList.toggle('error',!!isError);
+}
+function setOnlineLobbyStatus(message,isError=false){
+  const el=document.getElementById('online-lobby-status');
+  if(!el)return;
+  el.textContent=message;el.classList.toggle('error',!!isError);
+}
+function openOnlineModal(){
+  const modal=document.getElementById('online-modal');
+  try{
+    document.getElementById('sb-url').value=localStorage.getItem('conquete-supabase-url')||'';
+    document.getElementById('sb-anon').value=localStorage.getItem('conquete-supabase-public-key')||'';
+    document.getElementById('online-name').value=localStorage.getItem('conquete-online-name')||'';
+  }catch(_e){}
+  document.getElementById('online-setup').style.display=onlineGame?'none':'block';
+  document.getElementById('online-lobby').classList.toggle('vis',!!onlineGame);
+  modal.classList.add('vis');
+  if(onlineGame)renderOnlineLobby();
+}
+function closeOnlineModal(){
+  if(onlineGame){void leaveOnlineRoom();return;}
+  document.getElementById('online-modal').classList.remove('vis');
+}
+async function onlineReadyClient(){
+  const url=document.getElementById('sb-url').value.trim().replace(/\/$/,'');
+  const key=document.getElementById('sb-anon').value.trim();
+  const name=onlineName();
+  const secureSupabaseUrl=/^https:\/\/[\w.-]+(?::\d+)?$/i.test(url);
+  const localSupabaseUrl=/^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/i.test(url);
+  if(!secureSupabaseUrl&&!localSupabaseUrl)throw new Error('URL Supabase invalide : utilise HTTPS (HTTP est accepté uniquement sur localhost).');
+  if(!key)throw new Error('Saisis la clé publique anon/publishable du projet.');
+  if(onlineIsServiceKey(key))throw new Error('Cette clé est secrète (service_role). Utilise uniquement la clé publique anon/publishable.');
+  if(!name)throw new Error('Choisis un pseudo.');
+  if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Le client Supabase n’a pas chargé. Vérifie la connexion Internet puis recharge la page.');
+  try{
+    localStorage.setItem('conquete-supabase-url',url);
+    localStorage.setItem('conquete-supabase-public-key',key);
+    localStorage.setItem('conquete-online-name',name);
+  }catch(_e){}
+  const signature=url+'|'+key;
+  if(!onlineClient||onlineConfigSignature!==signature){
+    onlineClient=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:20}}});
+    onlineConfigSignature=signature;
+  }
+  const sessionResult=await onlineClient.auth.getSession();
+  if(sessionResult.error)throw sessionResult.error;
+  if(!sessionResult.data.session){
+    const authResult=await onlineClient.auth.signInAnonymously();
+    if(authResult.error)throw new Error('Connexion anonyme refusée : active « Anonymous sign-ins » dans Supabase Auth. '+authResult.error.message);
+  }
+  return onlineClient;
+}
+function onlineSubscribe(channel){
+  return new Promise((resolve,reject)=>{
+    let settled=false;
+    const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error('Délai dépassé en rejoignant le canal Realtime. Vérifie les politiques RLS du fichier de configuration.'));}},12000);
+    channel.subscribe(status=>{
+      if(status==='SUBSCRIBED'&&!settled){settled=true;clearTimeout(timer);resolve(channel);}
+      else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)&&!settled){settled=true;clearTimeout(timer);reject(new Error('Connexion Supabase Realtime impossible ('+status+').'));}
+    });
+  });
+}
+async function onlineSend(channel,event,payload){
+  if(!channel)throw new Error('Canal Realtime absent.');
+  const result=await channel.send({type:'broadcast',event,payload});
+  if(result&&result.status&&result.status!=='ok')throw new Error('Envoi Realtime échoué : '+result.status);
+}
+function onlineLobbyPlayers(){
+  return players.map((p,i)=>({index:i,name:p.name,color:p.color,playerId:p.playerId}));
+}
+function renderOnlineLobby(){
+  if(!onlineGame)return;
+  const modal=document.getElementById('online-modal');
+  const setup=document.getElementById('online-setup');
+  const lobby=document.getElementById('online-lobby');
+  setup.style.display='none';lobby.classList.add('vis');modal.classList.add('vis');
+  document.getElementById('online-room-code').textContent=onlineGame.roomCode;
+  document.getElementById('online-lobby-title').textContent=onlineGame.isHost?'Ta salle':'Salle en ligne';
+  const list=document.getElementById('online-player-list');
+  list.innerHTML='';
+  const members=onlineGame.isHost?onlineLobbyPlayers():(onlineGame.members||[]);
+  members.forEach((m,i)=>{
+    const row=document.createElement('div');row.className='online-player';
+    const dot=document.createElement('span');dot.className='hud-dot';dot.style.background=m.color||P_COLORS[i%P_COLORS.length];
+    const label=document.createElement('span');label.textContent=(m.index===0?'Hôte · ':'Joueur '+(m.index+1)+' · ')+(m.name||'En attente');
+    row.append(dot,label);list.appendChild(row);
+  });
+  if(members.length<8){const row=document.createElement('div');row.className='online-player';row.style.opacity='.55';row.textContent='En attente d’autres joueurs…';list.appendChild(row);}
+  document.getElementById('online-host-controls').style.display=onlineGame.isHost?'flex':'none';
+  const startButton=document.getElementById('online-start-button');
+  startButton.disabled=!onlineGame.isHost||members.length<2||onlineGame.started;
+  if(onlineGame.started)setOnlineLobbyStatus('La partie a commencé. La carte se synchronise…');
+  else if(onlineGame.isHost)setOnlineLobbyStatus(members.length<2?'Partage le code ; il faut au moins deux joueurs.':'Joueurs prêts : '+members.length+'. Tu peux lancer la partie.');
+  else setOnlineLobbyStatus('Connecté à la salle. En attente du lancement par l’hôte…');
+}
+async function openHostChannelsFor(player){
+  const session=onlineGame;
+  if(!session||!session.isHost||Number(player.player_index??player.index)===session.playerIndex)return;
+  if(!session.viewChannels.has(player.player_id)){
+    const view=session.client.channel(onlineTopic(session.roomCode,'view',player.player_id),{config:{private:true,broadcast:{self:false}}});
+    await onlineSubscribe(view);
+    if(onlineGame!==session){await Promise.resolve(view.unsubscribe()).catch(()=>{});return;}
+    session.viewChannels.set(player.player_id,view);
+  }
+  if(onlineGame!==session)return;
+  if(!session.commandChannels.has(player.player_id)){
+    const command=session.client.channel(onlineTopic(session.roomCode,'cmd',player.player_id),{config:{private:true,broadcast:{self:false}}});
+    command.on('broadcast',{event:'command'},({payload})=>{void handleOnlineCommand(player.player_id,payload||{});});
+    await onlineSubscribe(command);
+    if(onlineGame!==session){await Promise.resolve(command.unsubscribe()).catch(()=>{});return;}
+    session.commandChannels.set(player.player_id,command);
+  }
+}
+async function refreshOnlineMembers(){
+  const session=onlineGame;
+  if(!session||!session.isHost)return;
+  if(session.refreshPromise){session.refreshAgain=true;return session.refreshPromise;}
+  const run=async()=>{
+    do{
+      session.refreshAgain=false;
+      await refreshOnlineMembersOnce(session);
+    }while(session.refreshAgain&&onlineGame===session);
+  };
+  const promise=run().finally(()=>{if(session.refreshPromise===promise)session.refreshPromise=null;});
+  session.refreshPromise=promise;
+  return promise;
+}
+async function refreshOnlineMembersOnce(session){
+  const {data,error}=await session.client.rpc('conquete_list_members',{p_code:session.roomCode});
+  if(error)throw error;
+  if(onlineGame!==session)return;
+  const members=Array.isArray(data)?data:[];
+  const activeIds=new Set(members.map(m=>m.player_id));
+  for(const[id,channel]of [...session.viewChannels])if(!activeIds.has(id)){
+    session.viewChannels.delete(id);await Promise.resolve(channel.unsubscribe()).catch(()=>{});
+  }
+  for(const[id,channel]of [...session.commandChannels])if(!activeIds.has(id)){
+    session.commandChannels.delete(id);await Promise.resolve(channel.unsubscribe()).catch(()=>{});
+  }
+  if(onlineGame!==session)return;
+  if(!session.started){
+    players=members.map(m=>({
+      playerId:m.player_id,name:m.player_name,password:'',color:P_COLORS[m.player_index]||P_COLORS[0],
+      money:500,influence:0,isBot:false,botLevel:'normal',spawnX:null,spawnY:null
+    }));
+  }
+  for(const member of members){
+    if(onlineGame!==session)return;
+    await openHostChannelsFor(member);
+  }
+  if(onlineGame!==session)return;
+  session.members=members.map(m=>({index:m.player_index,name:m.player_name,color:P_COLORS[m.player_index]||P_COLORS[0],playerId:m.player_id}));
+  renderOnlineLobby();
+  await onlineSend(session.lobbyChannel,'lobby-state',{members:session.members,started:session.started});
+  if(onlineGame===session&&session.started)await publishOnlineViews();
+}
+async function createOnlineRoom(){
+  try{
+    setOnlineStatus('Connexion à Supabase…');
+    const client=await onlineReadyClient();
+    const roomCode=onlineRandomCode();
+    const playerId=onlineRandomId();
+    const {error}=await client.rpc('conquete_create_room',{p_code:roomCode,p_player_id:playerId,p_player_name:onlineName()});
+    if(error)throw error;
+    onlineGame={client,roomCode,playerId,playerIndex:0,isHost:true,started:false,activePlayer:0,processingRemote:false,
+      lobbyChannel:null,joinChannel:null,viewChannel:null,commandChannel:null,viewChannels:new Map(),commandChannels:new Map(),seenActions:new Set(),gameOver:null,members:[]};
+    players=[{playerId,name:onlineName(),password:'',color:P_COLORS[0],money:500,influence:0,isBot:false,botLevel:'normal',spawnX:null,spawnY:null}];
+    const lobby=client.channel(onlineTopic(roomCode,'lobby'),{config:{private:true,broadcast:{self:false}}});
+    await onlineSubscribe(lobby);
+    onlineGame.lobbyChannel=lobby;
+    const join=client.channel(onlineTopic(roomCode,'join'),{config:{private:true,broadcast:{self:false}}});
+    join.on('broadcast',{event:'join-notice'},()=>{void refreshOnlineMembers().catch(e=>setOnlineLobbyStatus(e.message,true));});
+    join.on('broadcast',{event:'leave-notice'},()=>{
+      for(const delay of [250,900])setTimeout(()=>{
+        if(onlineGame&&onlineGame.isHost)void refreshOnlineMembers().catch(e=>setOnlineLobbyStatus(e.message,true));
+      },delay);
+    });
+    await onlineSubscribe(join);
+    onlineGame.joinChannel=join;
+    onlineGame.members=onlineLobbyPlayers();
+    setOnlineStatus('');renderOnlineLobby();
+  }catch(error){
+    const message=error.message||String(error);
+    if(onlineGame)await leaveOnlineRoom(true);
+    openOnlineModal();setOnlineStatus(message,true);
+  }
+}
+function openGuestChannels(){
+  const room=onlineGame.roomCode,playerId=onlineGame.playerId;
+  const lobby=onlineClient.channel(onlineTopic(room,'lobby'),{config:{private:true,broadcast:{self:false}}});
+  lobby.on('broadcast',{event:'lobby-state'},({payload})=>{
+    if(!onlineGame||onlineGame.isHost)return;
+    onlineGame.members=payload&&Array.isArray(payload.members)?payload.members:[];
+    const ownSeat=onlineGame.members.find(m=>m.playerId===onlineGame.playerId);
+    if(ownSeat)onlineGame.playerIndex=ownSeat.index;
+    onlineGame.started=!!(payload&&payload.started);
+    renderOnlineLobby();
+  });
+  lobby.on('broadcast',{event:'room-closed'},()=>{setOnlineLobbyStatus('L’hôte a fermé la salle.');void leaveOnlineRoom(false);});
+  onlineGame.lobbyChannel=lobby;
+  const join=onlineClient.channel(onlineTopic(room,'join'),{config:{private:true,broadcast:{self:false}}});
+  onlineGame.joinChannel=join;
+  const view=onlineClient.channel(onlineTopic(room,'view',playerId),{config:{private:true,broadcast:{self:false}}});
+  view.on('broadcast',{event:'view'},({payload})=>applyOnlineView(payload));
+  onlineGame.viewChannel=view;
+  const command=onlineClient.channel(onlineTopic(room,'cmd',playerId),{config:{private:true,broadcast:{self:false}}});
+  onlineGame.commandChannel=command;
+  return Promise.all([onlineSubscribe(lobby),onlineSubscribe(join),onlineSubscribe(view),onlineSubscribe(command)]);
+}
+async function joinOnlineRoom(){
+  try{
+    const code=document.getElementById('online-join-code').value.trim().toUpperCase();
+    if(!/^[A-HJ-NP-Z2-9]{10}$/.test(code))throw new Error('Le code de salle doit contenir 10 caractères.');
+    setOnlineStatus('Connexion à Supabase…');
+    const client=await onlineReadyClient();
+    let playerId='';
+    try{playerId=localStorage.getItem('conquete-player-'+code)||'';}catch(_e){}
+    if(!playerId)playerId=onlineRandomId();
+    const {data,error}=await client.rpc('conquete_join_room',{p_code:code,p_player_id:playerId,p_player_name:onlineName()});
+    if(error)throw error;
+    try{localStorage.setItem('conquete-player-'+code,playerId);}catch(_e){}
+    const playerIndex=Number(data);
+    if(!Number.isInteger(playerIndex)||playerIndex<1||playerIndex>7)throw new Error('Supabase a renvoyé une place de joueur invalide.');
+    onlineGame={client,roomCode:code,playerId,playerIndex,isHost:false,started:false,activePlayer:-1,processingRemote:false,
+      lobbyChannel:null,joinChannel:null,viewChannel:null,commandChannel:null,viewChannels:new Map(),commandChannels:new Map(),seenActions:new Set(),gameOver:null,members:[]};
+    players=[];map=[];
+    await openGuestChannels();
+    document.getElementById('online-setup').style.display='none';
+    document.getElementById('online-lobby').classList.add('vis');
+    setOnlineLobbyStatus('Salle rejointe. Synchronisation avec l’hôte…');renderOnlineLobby();
+    await onlineSend(onlineGame.joinChannel,'join-notice',{playerId});
+  }catch(error){
+    const message=error.message||String(error);
+    if(onlineGame&&!onlineGame.isHost)await leaveOnlineRoom(true);
+    openOnlineModal();setOnlineStatus(message,true);
+  }
+}
+async function startOnlineGame(){
+  if(!onlineGame||!onlineGame.isHost||players.length<2)return;
+  try{
+    setOnlineLobbyStatus('Préparation de la partie…');
+    const {error}=await onlineClient.rpc('conquete_start_room',{p_code:onlineGame.roomCode});
+    if(error)throw error;
+    onlineGame.started=true;
+    try{await onlineSend(onlineGame.lobbyChannel,'lobby-state',{members:onlineLobbyPlayers(),started:true});}catch(_e){}
+    document.getElementById('online-modal').classList.remove('vis');
+    startGame();
+  }catch(error){setOnlineLobbyStatus(error.message||String(error),true);}
+}
+async function copyOnlineCode(){
+  if(!onlineGame)return;
+  try{await navigator.clipboard.writeText(onlineGame.roomCode);setOnlineLobbyStatus('Code copié.');}
+  catch(_e){window.prompt('Copie ce code pour tes amis :',onlineGame.roomCode);}
+}
+function onlineDisplayPlayers(viewIndex){
+  return players.map((p,i)=>({
+    name:p.name,color:p.color,isBot:!!p.isBot,botLevel:p.botLevel||'normal',
+    money:i===viewIndex?p.money:0,influence:i===viewIndex?(p.influence||0):0,
+    spawnX:i===viewIndex?p.spawnX:null,spawnY:i===viewIndex?p.spawnY:null
+  }));
+}
+async function publishOnlineViews(){
+  const session=onlineGame;
+  if(!session||!session.isHost||!session.started||!map.length)return;
+  if(session.publishingViews){session.publishAgain=true;return;}
+  session.publishingViews=true;
+  try{
+    do{
+      session.publishAgain=false;
+      const savedVisible=new Set(visibleTiles);
+      try{
+        for(let pi=1;pi<players.length;pi++){
+          if(onlineGame!==session)return;
+          const player=players[pi];
+          const channel=session.viewChannels.get(player.playerId);
+          if(!channel)continue;
+          calcVisible(pi);
+          const visible=new Set(visibleTiles);
+          const viewMap=map.map((col,x)=>col.map((tile,y)=>{
+            const seen=visible.has(x+','+y);
+            if(!seen)return{type:tile.type==='mer'?'mer':'inconnu',owner:null,building:null,isSpawn:false,site:null,unit:null,exploreTarget:null,attackTarget:null,marchPos:null};
+            return{type:tile.type,owner:tile.owner,building:tile.building,isSpawn:!!tile.isSpawn,site:tile.site,unit:tile.unit,
+              exploreTarget:tile.exploreTarget?{...tile.exploreTarget}:null,attackTarget:tile.attackTarget?{...tile.attackTarget}:null,
+              marchPos:tile.marchPos?{...tile.marchPos}:null};
+          }));
+          const view={playerIndex:pi,activePlayer:curP,turnN,commandsRemaining:curP===pi?commandsRemaining:0,
+            currentCommandLimit:commandCapacity(pi),players:onlineDisplayPlayers(pi),visibleTiles:[...visible],map:viewMap,
+            gameOver:session.gameOver||null};
+          try{await onlineSend(channel,'view',view);}catch(error){console.warn('Conquête: envoi de vue impossible',error);}
+        }
+      }finally{if(onlineGame===session)visibleTiles=savedVisible;}
+    }while(session.publishAgain&&onlineGame===session);
+  }finally{session.publishingViews=false;}
+}
+function updateOnlineTurnLock(activePlayer){
+  if(!onlineGame||!onlineGame.started)return;
+  onlineGame.activePlayer=activePlayer;
+  const waiting=activePlayer!==onlineGame.playerIndex;
+  const screen=document.getElementById('screen-game');
+  screen.classList.toggle('online-waiting',waiting);
+  const name=players[activePlayer]?players[activePlayer].name:'un joueur';
+  document.getElementById('online-turn-cover-text').textContent=waiting?'En attente du tour de '+name+'…':'À vous de jouer';
+  document.getElementById('btn-end-turn').disabled=waiting||botThinking;
+}
+function applyOnlineView(view){
+  if(!onlineGame||onlineGame.isHost||!view||view.playerIndex!==onlineGame.playerIndex)return;
+  onlineGame.started=true;onlineGame.activePlayer=view.activePlayer;onlineGame.gameOver=view.gameOver||null;
+  players=view.players;map=view.map;curP=onlineGame.playerIndex;turnN=view.turnN;
+  visibleTiles=new Set(view.visibleTiles||[]);commandsRemaining=view.commandsRemaining||0;currentCommandLimit=view.currentCommandLimit||BASE_COMMANDS;
+  selectedUnits.clear();selTile=null;orderMode=null;
+  const mine=players[curP];
+  document.getElementById('hud-name').textContent=mine.name;
+  document.getElementById('hud-bot-mark').innerHTML=mine.isBot?iconSvg('bot','icon'):'';
+  document.getElementById('hud-dot').style.background=mine.color;
+  document.getElementById('hud-money').textContent=mine.money||0;
+  document.getElementById('hud-turn').textContent='Tour '+turnN+(view.activePlayer===curP?' · À vous':' · '+(players[view.activePlayer]?.name||'Un joueur')+' joue');
+  const inc=calcTotalIncome(curP);
+  document.getElementById('hud-income').textContent=inc>0?`+${inc}$/tour`:'';
+  updateScoutsHud();updateStrategyHud();updateCommandsHud();
+  document.getElementById('btn-end-turn').disabled=view.activePlayer!==curP;
+  document.getElementById('action-panel').classList.remove('vis');
+  document.getElementById('explore-banner').classList.remove('vis');
+  document.getElementById('order-preview').textContent='';
+  document.getElementById('map-canvas').classList.remove('explore-mode');
+  closeBuildModal();
+  document.getElementById('bot-banner').classList.remove('vis');
+  document.getElementById('screen-game').classList.remove('bot-active');
+  updateOnlineTurnLock(view.activePlayer);
+  document.getElementById('online-modal').classList.remove('vis');
+  showScreen('screen-game');
+  if(view.gameOver){document.getElementById('win-msg').textContent=view.gameOver.message;showScreen('screen-win');return;}
+  requestAnimationFrame(()=>{fitCanvas();centerOnSpawn();draw();});
+}
+async function sendOnlineAction(action){
+  if(!onlineGame||onlineGame.isHost||onlineGame.activePlayer!==onlineGame.playerIndex)return;
+  try{
+    await onlineSend(onlineGame.commandChannel,'command',{...action,id:onlineRandomId()});
+  }catch(error){
+    showPopup('scout-popup','Envoi impossible : '+(error.message||String(error)),2600);
+    document.getElementById('btn-end-turn').disabled=false;
+  }
+}
+async function handleOnlineCommand(playerId,payload){
+  const session=onlineGame;
+  if(!session||!session.isHost||!session.started||!payload)return;
+  const pi=players.findIndex(p=>p.playerId===playerId);
+  if(pi<1||pi!==curP||session.gameOver)return;
+  if(typeof payload.id!=='string'||!payload.id||payload.id.length>64)return;
+  if(session.seenActions.has(payload.id))return;
+  session.seenActions.add(payload.id);
+  if(session.seenActions.size>256)session.seenActions.delete(session.seenActions.values().next().value);
+  session.processingRemote=true;
+  try{
+    if(payload.type==='end-turn')endTurn();
+    else if(payload.type==='build'&&Number.isInteger(payload.x)&&Number.isInteger(payload.y)&&map[payload.x]?.[payload.y]){
+      buildTarget={x:payload.x,y:payload.y};doBuild(String(payload.key||''),String(payload.category||''));
+    }else if(payload.type==='order'&&['explore','attack'].includes(payload.mode)&&Number.isInteger(payload.x)&&Number.isInteger(payload.y)&&payload.x>=0&&payload.x<MW&&payload.y>=0&&payload.y<MH&&Array.isArray(payload.units)){
+      selectedUnits=new Set(payload.units.slice(0,32).filter(k=>{
+        if(typeof k!=='string'||!/^\d+,\d+$/.test(k))return false;
+        const[x,y]=k.split(',').map(Number);
+        return x>=0&&x<MW&&y>=0&&y<MH&&map[x]?.[y]?.owner===pi&&!!map[x][y].unit;
+      }));
+      orderMode=payload.mode;commitOrderTarget(payload.x,payload.y);
+    }
+  }catch(error){
+    console.warn('Conquête: commande en ligne ignorée',error);
+  }finally{
+    if(buildTarget&&session.processingRemote)buildTarget=null;
+    session.processingRemote=false;
+    if(onlineGame===session&&session.started&&payload.type!=='end-turn')await publishOnlineViews();
+  }
+}
+async function handleOnlineJoinNotice(){
+  if(!onlineGame||!onlineGame.isHost)return;
+  try{await refreshOnlineMembers();}
+  catch(error){setOnlineLobbyStatus(error.message||String(error),true);}
+}
+async function leaveOnlineRoom(notify=true){
+  const session=onlineGame;
+  if(!session)return;
+  if(notify){
+    try{
+      if(session.isHost&&session.lobbyChannel)await onlineSend(session.lobbyChannel,'room-closed',{});
+      else if(session.joinChannel)await onlineSend(session.joinChannel,'leave-notice',{playerId:session.playerId});
+    }catch(_e){}
+    try{await session.client.rpc('conquete_leave_room',{p_code:session.roomCode});}catch(_e){}
+  }
+  const channels=[session.lobbyChannel,session.joinChannel,session.viewChannel,session.commandChannel,
+    ...[...(session.viewChannels?.values()||[])],...[...(session.commandChannels?.values()||[])]];
+  await Promise.all(channels.filter(Boolean).map(ch=>Promise.resolve(ch.unsubscribe()).catch(()=>{})));
+  onlineGame=null;players=[];map=[];curP=0;turnN=1;visibleTiles.clear();selectedUnits.clear();selTile=null;orderMode=null;
+  commandsRemaining=0;currentCommandLimit=BASE_COMMANDS;botThinking=false;
+  document.getElementById('online-modal').classList.remove('vis');
+  document.getElementById('online-setup').style.display='block';document.getElementById('online-lobby').classList.remove('vis');
+  document.getElementById('screen-game').classList.remove('online-waiting','bot-active');
+  addPlayer();addPlayer();showScreen('screen-menu');
 }
 
 hydrateIcons();
